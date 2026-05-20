@@ -6,6 +6,83 @@
 <title>Ciel's Road Trip 2025</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, onValue, push, remove, update }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDWM0CDQxsWsf_7m36Cl9JuSKHCZhiUFy8",
+  authDomain: "auzrroadtrip-2026.firebaseapp.com",
+  databaseURL: "https://auzrroadtrip-2026-default-rtdb.firebaseio.com",
+  projectId: "auzrroadtrip-2026",
+  storageBucket: "auzrroadtrip-2026.firebasestorage.app",
+  messagingSenderId: "668746988978",
+  appId: "1:668746988978:web:94b99d773d22e1ce5ff8ab"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getDatabase(app);
+
+// ── expose DB helpers to global scope ──
+window._fbSet    = (path, val)       => set(ref(db, path), val);
+window._fbPush   = (path, val)       => push(ref(db, path), val);
+window._fbRemove = (path)            => remove(ref(db, path));
+window._fbUpdate = (path, val)       => update(ref(db, path), val);
+window._fbListen = (path, cb)        => onValue(ref(db, path), snap => cb(snap.val()));
+
+// ── seed default data if DB is empty, then start listeners ──
+window._fbListen('initialized', val => {
+  if (!val) {
+    // Write defaults once
+    window._fbSet('spots', window._defaultSpots);
+    window._fbSet('drive', window._defaultDrive);
+    window._fbSet('hotels', window._defaultHotels);
+    window._fbSet('foods', window._defaultFoods);
+    window._fbSet('initialized', true);
+  }
+});
+
+// ── SPOTS listener ──
+window._fbListen('spots', val => {
+  if (!val) return;
+  spots = Array.isArray(val) ? val.filter(Boolean) : Object.values(val);
+  renderSpots(); renderHScroll(); renderProg('r-fill','r-pct','r-dots'); renderProg('h-fill','h-pct','h-dots');
+  populateFoodCitySel();
+  if(leafMap){leafMap.remove();leafMap=null;setTimeout(initMap,120);}
+});
+
+// ── DRIVE listener ──
+window._fbListen('drive', val => {
+  if (!val) return;
+  const arr = Array.isArray(val) ? val.filter(Boolean) : Object.values(val);
+  DRIVE.length = 0; arr.forEach(v => DRIVE.push(v));
+});
+
+// ── HOTELS listener ──
+window._fbListen('hotels', val => {
+  if (!val) { hotels = []; renderHotels(); return; }
+  hotels = Array.isArray(val) ? val.filter(Boolean) : Object.values(val);
+  hotels.sort((a,b)=>new Date(a.checkin)-new Date(b.checkin));
+  renderHotels();
+});
+
+// ── FOODS listener ──
+window._fbListen('foods', val => {
+  if (!val) { foods = []; renderFood(); return; }
+  foods = Array.isArray(val) ? val.filter(Boolean) : Object.values(val);
+  renderFood();
+});
+
+// ── EXPENSES listener ──
+window._fbListen('expenses', val => {
+  if (!val) { expenses = []; renderExp(); renderHomeStats(); return; }
+  expenses = Array.isArray(val) ? val.filter(Boolean) : Object.values(val);
+  expenses.sort((a,b)=>new Date(b.dateVal)-new Date(a.dateVal));
+  renderExp(); renderHomeStats();
+});
+</script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&display=swap');
 :root{
@@ -473,10 +550,11 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:"PingFang
 </div>
 
 <script>
-// ══════════════ DATA ══════════════
+// ══════════════ DATA (local state — synced from Firebase) ══════════════
 const TODAY = new Date(); TODAY.setHours(0,0,0,0);
 
-let spots = [
+// Default data — written to Firebase on first load only
+window._defaultSpots = [
   {id:1,  name:'Rochester',     state:'New York',    type:'city',   nights:0, map:'Rochester NY',                         lat:43.1566, lng:-77.6088},
   {id:2,  name:'Cleveland',     state:'Ohio',        type:'city',   nights:1, map:'Cleveland OH',                         lat:41.4993, lng:-81.6944},
   {id:3,  name:'Chicago',       state:'Illinois',    type:'city',   nights:2, map:'Chicago IL',                           lat:41.8781, lng:-87.6298},
@@ -490,10 +568,8 @@ let spots = [
   {id:11, name:'Los Angeles',   state:'California',  type:'city',   nights:2, map:'Los Angeles CA',                       lat:34.0522, lng:-118.2437},
   {id:12, name:'Irvine',        state:'California',  type:'city',   nights:0, map:'Irvine CA',                            lat:33.6846, lng:-117.8265},
 ];
-
-const DRIVE = ['3h','5h','7h','5h','4h','4h','5h','3h','4.5h','2h','1h'];
-
-let hotels = [
+window._defaultDrive = ['3h','5h','7h','5h','4h','4h','5h','3h','4.5h','2h','1h'];
+window._defaultHotels = [
   {id:1,name:'Marriott Cleveland Downtown',city:'Cleveland, OH',checkin:'2025-06-01',checkout:'2025-06-02',conf:'',url:'https://marriott.com',map:'Marriott Cleveland Downtown Ohio'},
   {id:2,name:'Hilton Chicago',city:'Chicago, IL',checkin:'2025-06-02',checkout:'2025-06-04',conf:'',url:'https://hilton.com',map:'Hilton Chicago Michigan Ave'},
   {id:3,name:'Marriott Omaha Downtown',city:'Omaha, NE',checkin:'2025-06-05',checkout:'2025-06-06',conf:'',url:'https://marriott.com',map:'Marriott Omaha Downtown'},
@@ -504,10 +580,8 @@ let hotels = [
   {id:8,name:'Marriott Courtyard Visalia',city:'Visalia, CA',checkin:'2025-06-17',checkout:'2025-06-19',conf:'',url:'https://marriott.com',map:'Courtyard Marriott Visalia California'},
   {id:9,name:'Le Méridien Santa Monica',city:'Santa Monica, CA',checkin:'2025-06-19',checkout:'2025-06-22',conf:'',url:'https://marriott.com',map:'Le Meridien Delfina Santa Monica'},
 ];
-
-// foods grouped by city name
-let foods = [
-  {id:1,city:'Chicago',name:"Lou Malnati's",tag:'Deep dish pizza',note:'Butter crust is a must. Book ahead — gets packed.',map:"Lou Malnati's Chicago IL"},
+window._defaultFoods = [
+  {id:1,city:'Chicago',name:"Lou Malnati's",tag:'Deep dish pizza',note:"Butter crust is a must. Book ahead — gets packed.",map:"Lou Malnati's Chicago IL"},
   {id:2,city:'Chicago',name:'Garrett Popcorn',tag:'Chicago snack',note:'Get the Chicago Mix (cheese + caramel). Airport and loop locations.',map:'Garrett Popcorn Chicago IL'},
   {id:3,city:'Denver',name:'RiNo Yacht Club',tag:'Cocktails & bites',note:'Great vibe in the arts district. Good for evening drinks.',map:'RiNo Yacht Club Denver CO'},
   {id:4,city:'Denver',name:'Work & Class',tag:'Latin American',note:'Fried chicken & grits are amazing. Small plates, get multiple.',map:'Work and Class Denver CO'},
@@ -517,7 +591,12 @@ let foods = [
   {id:8,city:'Los Angeles',name:'In-N-Out Burger',tag:'West Coast must',note:'West Coast institution. Animal style burger is the move.',map:'In-N-Out Burger Los Angeles CA'},
 ];
 
+// Local state — populated by Firebase listeners
+let spots   = [];
+let hotels  = [];
+let foods   = [];
 let expenses = [];
+const DRIVE  = [];
 let sid=400, hid=400, fid=200, eid=1;
 let leafMap = null;
 const CATS={Gas:'#4A6055',Food:'#7A9485',Hotel:'#2E5040',Tickets:'#8A7060',Shopping:'#B8860B',Parking:'#5A7080',Other:'#9E8F7F'};
@@ -706,19 +785,22 @@ function renderSpots(){
 
 function saveSpot(){
   const name=document.getElementById('s-name').value.trim(); if(!name)return;
-  spots.push({id:sid++,name,state:document.getElementById('s-state').value.trim(),type:document.getElementById('s-type').value,nights:parseInt(document.getElementById('s-nights').value)||0,map:document.getElementById('s-map').value.trim()||name,lat:parseFloat(document.getElementById('s-lat').value)||37,lng:parseFloat(document.getElementById('s-lng').value)||-100});
-  DRIVE.push('?h');
+  const newSpot={id:sid++,name,state:document.getElementById('s-state').value.trim(),type:document.getElementById('s-type').value,nights:parseInt(document.getElementById('s-nights').value)||0,map:document.getElementById('s-map').value.trim()||name,lat:parseFloat(document.getElementById('s-lat').value)||37,lng:parseFloat(document.getElementById('s-lng').value)||-100};
+  const newSpots=[...spots,newSpot];
+  const newDrive=[...DRIVE,'?h'];
+  window._fbSet('spots',newSpots);
+  window._fbSet('drive',newDrive);
   ['s-name','s-state','s-nights','s-map','s-lat','s-lng'].forEach(id=>document.getElementById(id).value='');
-  closeM('m-spot'); renderSpots();
-  if(leafMap){leafMap.remove();leafMap=null;setTimeout(initMap,120);}
+  closeM('m-spot');
 }
 
 function delSpot(id){
   if(!confirm('Remove this stop?'))return;
   const idx=spots.findIndex(s=>s.id===id);
-  spots=spots.filter(s=>s.id!==id); DRIVE.splice(idx,1);
-  renderSpots();
-  if(leafMap){leafMap.remove();leafMap=null;setTimeout(initMap,120);}
+  const newSpots=spots.filter(s=>s.id!==id);
+  const newDrive=[...DRIVE]; newDrive.splice(idx,1);
+  window._fbSet('spots',newSpots);
+  window._fbSet('drive',newDrive);
 }
 
 // ══════════════ HOTELS ══════════════
@@ -757,14 +839,15 @@ function saveHotel(){
   const name=document.getElementById('h-name').value.trim();
   const ci=document.getElementById('h-in').value,co=document.getElementById('h-out').value;
   if(!name||!ci||!co){alert('Please fill in name and dates');return;}
-  hotels.push({id:hid++,name,city:document.getElementById('h-city').value.trim(),checkin:ci,checkout:co,conf:document.getElementById('h-conf').value.trim(),url:document.getElementById('h-url').value.trim(),map:document.getElementById('h-map').value.trim()||name});
+  const newH={id:hid++,name,city:document.getElementById('h-city').value.trim(),checkin:ci,checkout:co,conf:document.getElementById('h-conf').value.trim(),url:document.getElementById('h-url').value.trim(),map:document.getElementById('h-map').value.trim()||name};
+  window._fbSet('hotels',[...hotels,newH]);
   ['h-name','h-city','h-in','h-out','h-conf','h-url','h-map'].forEach(id=>document.getElementById(id).value='');
-  closeM('m-hotel'); renderHotels();
+  closeM('m-hotel');
 }
 
 function delHotel(id){
   if(!confirm('Remove this hotel?'))return;
-  hotels=hotels.filter(h=>h.id!==id); renderHotels();
+  window._fbSet('hotels',hotels.filter(h=>h.id!==id));
 }
 
 // ══════════════ FOOD ══════════════
@@ -847,14 +930,15 @@ function openMForCity(city){
 
 function saveFood(){
   const name=document.getElementById('f-name').value.trim(); if(!name)return;
-  foods.push({id:fid++,city:document.getElementById('f-city').value,name,tag:document.getElementById('f-tag').value.trim(),note:document.getElementById('f-note').value.trim(),map:document.getElementById('f-map').value.trim()||name});
+  const newF={id:fid++,city:document.getElementById('f-city').value,name,tag:document.getElementById('f-tag').value.trim(),note:document.getElementById('f-note').value.trim(),map:document.getElementById('f-map').value.trim()||name};
+  window._fbSet('foods',[...foods,newF]);
   ['f-name','f-tag','f-note','f-map'].forEach(id=>document.getElementById(id).value='');
-  closeM('m-food'); renderFood();
+  closeM('m-food');
 }
 
 function delFood(id){
   if(!confirm('Remove this restaurant?'))return;
-  foods=foods.filter(f=>f.id!==id); renderFood();
+  window._fbSet('foods',foods.filter(f=>f.id!==id));
 }
 
 // ══════════════ EXPENSES ══════════════
@@ -868,13 +952,14 @@ function addExp(){
   const d=dv?new Date(dv):new Date();
   const ds=d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
   const cat=guessCAT(desc);
-  expenses.unshift({id:eid++,desc,amt,dateStr:ds,dateVal:dv||new Date().toISOString().split('T')[0],cat});
+  const newE={id:eid++,desc,amt,dateStr:ds,dateVal:dv||new Date().toISOString().split('T')[0],cat};
+  window._fbSet('expenses',[newE,...expenses]);
   document.getElementById('e-desc').value='';
   document.getElementById('e-amt').value='';
-  initDate(); renderExp(); renderHomeStats();
+  initDate();
 }
 
-function delExp(id){expenses=expenses.filter(e=>e.id!==id);renderExp();renderHomeStats();}
+function delExp(id){window._fbSet('expenses',expenses.filter(e=>e.id!==id));}
 
 function renderExp(){renderPie();renderTL();}
 
@@ -904,12 +989,18 @@ function renderTL(){
 }
 
 // ══════════════ INIT ══════════════
-renderSpots();
-renderHotels();
-renderFood();
-renderExp();
-renderHomeStats();
+// Firebase listeners will trigger renders automatically.
+// Just init date picker and show loading state.
 initDate();
+// Show sync indicator
+document.querySelectorAll('.page').forEach(p=>{
+  const sync=document.createElement('div');
+  sync.id='sync-toast';
+  sync.style.cssText='position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#2A2420;color:white;padding:8px 18px;border-radius:20px;font-size:13px;font-weight:500;z-index:999;transition:opacity .4s;pointer-events:none';
+  sync.textContent='🔄 Syncing with Firebase…';
+  document.body.appendChild(sync);
+  setTimeout(()=>{sync.style.opacity='0';setTimeout(()=>sync.remove(),400);},2500);
+});
 </script>
 </body>
 </html>
