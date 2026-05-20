@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Ciel's Road Trip 2025</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&display=swap');
+:root{
+  --bg:#F5F0E8;--bg2:#EDE7DA;--card:#FFFDF8;
+  --deep:#2A2420;--mid:#6B5E50;--soft:#A09080;
+  --border:#E2D8C8;--accent:#E8A020;
+  --amber:#E8A020;--amber-lt:#FDF0D0;
+  --warm:#D4875A;
+  --sage:#6B8060;--sage-lt:#D0DDC8;
+  --tab-h:72px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:var(--bg);font-family:"PingFang SC","SF Pro Text",-apple-system,sans-serif;color:var(--deep);font-size:15px}
+.app{display:flex;flex-direction:column;height:100vh;height:100dvh}
+.screen{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:calc(var(--tab-h) + env(safe-area-inset-bottom,0px) + 10px)}
+.screen::-webkit-scrollbar{display:none}
+.page{display:none}
+.page.active{display:block}
+
+/* ── TABS ── */
+.tabs{position:fixed;bottom:0;left:0;right:0;z-index:100;padding:0 10px calc(env(safe-area-inset-bottom,0px)+8px)}
+.tabs-inner{background:var(--card);border-radius:30px;border:1px solid var(--border);display:flex;align-items:center;height:var(--tab-h);padding:0 6px;box-shadow:0 4px 28px rgba(42,36,32,.12)}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;padding:6px 2px 0;border-radius:20px;transition:background .2s}
+.ti{width:22px;height:22px;display:flex;align-items:center;justify-content:center}
+.ti svg{width:22px;height:22px;stroke:var(--soft);stroke-width:1.7;fill:none;stroke-linecap:round;stroke-linejoin:round;transition:stroke .2s}
+.tl{font-size:10px;font-weight:500;color:var(--soft);transition:color .2s;letter-spacing:.01em}
+.tdot{width:4px;height:4px;border-radius:50%;background:transparent;transition:background .2s}
+.tab.active .ti svg{stroke:var(--deep)}
+.tab.active .tl{color:var(--deep);font-weight:700}
+.tab.active .tdot{background:var(--deep)}
+/* center home button */
+.tab-home-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;margin-top:-24px;gap:4px}
+.tab-home-btn{width:54px;height:54px;border-radius:50%;background:var(--amber);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(232,160,32,.4);transition:transform .15s,box-shadow .15s;border:3px solid var(--card)}
+.tab-home-btn:active{transform:scale(.93);box-shadow:0 2px 8px rgba(232,160,32,.3)}
+.tab-home-btn svg{width:24px;height:24px;stroke:white;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.tab-home-lbl{font-size:10px;font-weight:600;color:var(--deep);letter-spacing:.01em}
+.tab-home-wrap.active .tab-home-lbl{color:var(--amber)}
+
+/* ── SHARED HEADER ── */
+.ph{padding:50px 20px 12px;display:flex;align-items:flex-end;justify-content:space-between;position:sticky;top:0;z-index:10;background:var(--bg)}
+.ph-t{font-family:'Fraunces',serif;font-size:28px;font-weight:300;line-height:1}
+.ph-t em{font-style:italic;color:var(--amber)}
+.ph-s{font-size:12px;color:var(--soft);margin-top:4px}
+.ph-btn{background:var(--deep);color:#fff;border:none;border-radius:20px;padding:9px 16px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;transition:opacity .2s,transform .15s;white-space:nowrap}
+.ph-btn:active{opacity:.75;transform:scale(.96)}
+
+/* ── HOME ── */
+.home-top{padding:50px 20px 14px;display:flex;align-items:center;justify-content:space-between}
+.hh-menu{width:42px;height:42px;background:var(--card);border-radius:14px;border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer}
+.hh-menu span{display:block;height:1.5px;background:var(--deep);border-radius:1px}
+.hh-menu span:nth-child(1){width:16px}
+.hh-menu span:nth-child(2){width:10px}
+.hh-menu span:nth-child(3){width:16px}
+.hh-r{display:flex;gap:8px}
+.hh-bell{width:42px;height:42px;background:var(--card);border-radius:14px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;position:relative}
+.hh-bell svg{width:20px;height:20px;stroke:var(--deep);stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.bdot{position:absolute;top:9px;right:9px;width:7px;height:7px;border-radius:50%;background:var(--warm);border:1.5px solid var(--bg)}
+.hh-av{width:42px;height:42px;border-radius:14px;background:var(--deep);display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:17px;font-style:italic;color:var(--bg)}
+.greeting{padding:2px 20px 18px}
+.g-sm{font-size:13px;color:var(--soft);margin-bottom:6px}
+.g-big{font-family:'Fraunces',serif;font-size:32px;font-weight:400;line-height:1.1;letter-spacing:-.5px}
+.g-big em{font-style:italic;color:var(--amber)}
+
+/* trip banner */
+.banner{margin:0 16px 14px;background:#2A2018;border-radius:22px;padding:18px 20px;position:relative;overflow:hidden}
+.banner-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 80% 20%,rgba(232,160,32,.25) 0%,transparent 55%),radial-gradient(ellipse at 15% 80%,rgba(212,135,90,.2) 0%,transparent 50%)}
+.b-label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:7px}
+.b-title{font-family:'Fraunces',serif;font-size:21px;font-weight:400;color:#fff;margin-bottom:3px}
+.b-title em{font-style:italic;color:#F5D878}
+.b-sub{font-size:12px;color:rgba(255,255,255,.5);margin-bottom:16px}
+.b-stats{display:flex}
+.bst{flex:1;border-right:1px solid rgba(255,255,255,.1);padding-right:12px;margin-right:12px}
+.bst:last-child{border:none;margin:0;padding:0}
+.bst-n{font-family:'Fraunces',serif;font-size:22px;font-weight:300;color:#fff}
+.bst-l{font-size:10px;color:rgba(255,255,255,.4);margin-top:1px}
+
+/* progress */
+.prog{margin:0 16px 14px;background:var(--card);border:1px solid var(--border);border-radius:18px;padding:15px}
+.prog-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:11px}
+.prog-lbl{font-size:11px;font-weight:600;color:var(--soft);letter-spacing:.06em;text-transform:uppercase}
+.prog-pct{font-size:13px;font-weight:700;color:var(--amber);font-family:'Fraunces',serif}
+.prog-track{height:6px;background:var(--bg2);border-radius:3px;margin-bottom:11px;position:relative}
+.prog-fill{height:100%;background:linear-gradient(90deg,#F5D878,var(--amber));border-radius:3px;position:relative;transition:width .8s cubic-bezier(.34,1.56,.64,1)}
+.prog-thumb{position:absolute;right:-5px;top:50%;transform:translateY(-50%);width:12px;height:12px;border-radius:50%;background:var(--card);border:2.5px solid var(--amber)}
+.prog-dots{display:flex;justify-content:space-between}
+.pdot{display:flex;flex-direction:column;align-items:center;gap:4px}
+.pdot-c{width:8px;height:8px;border-radius:50%;background:var(--border);transition:background .3s,transform .2s}
+.pdot.reached .pdot-c{background:var(--sage-lt)}
+.pdot.current .pdot-c{background:var(--amber);transform:scale(1.5);box-shadow:0 0 0 3px rgba(232,160,32,.25)}
+.pdot-n{font-size:8px;color:var(--soft);max-width:34px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* chips */
+.chips{display:flex;gap:8px;padding:0 16px 14px;overflow-x:auto;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex-shrink:0;padding:8px 15px;border-radius:20px;font-size:13px;font-weight:500;cursor:pointer;background:var(--card);border:1px solid var(--border);color:var(--mid);display:flex;align-items:center;gap:5px;transition:all .2s}
+.chip svg{width:13px;height:13px;stroke:currentColor;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.chip.on{background:var(--amber);border-color:var(--amber);color:#fff}
+
+/* sec */
+.sec{display:flex;align-items:center;justify-content:space-between;padding:0 20px 9px}
+.sec-t{font-size:11px;font-weight:600;color:var(--soft);letter-spacing:.06em;text-transform:uppercase}
+
+/* home scroll cards */
+.hscroll{display:flex;gap:10px;padding:0 16px 14px;overflow-x:auto;scrollbar-width:none}
+.hscroll::-webkit-scrollbar{display:none}
+.hcard{flex-shrink:0;width:150px;background:var(--card);border-radius:18px;border:1px solid var(--border);overflow:hidden;cursor:pointer;transition:transform .15s}
+.hcard:active{transform:scale(.96)}
+.hcard-img{height:90px;display:flex;align-items:center;justify-content:center}
+.hcard-img svg{width:46px;height:46px;stroke:var(--deep);stroke-width:1.3;fill:none;stroke-linecap:round;stroke-linejoin:round;opacity:.45}
+.c-sage{background:#D4E5D5}.c-sand{background:#EAD8C4}.c-slate{background:#D4DCE4}.c-terra{background:#EAD4C4}
+.hcard-body{padding:10px 12px 12px}
+.hcard-name{font-size:13px;font-weight:600;color:var(--deep);margin-bottom:2px}
+.hcard-state{font-size:11px;color:var(--soft);margin-bottom:7px}
+.hcard-badge{display:inline-block;background:var(--bg);border-radius:20px;padding:2px 9px;font-size:10px;font-weight:600;color:var(--mid)}
+
+/* qstats */
+.qstats{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 16px 8px}
+.qstat{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:13px}
+.qstat-n{font-family:'Fraunces',serif;font-size:24px;font-weight:300;color:var(--deep)}
+.qstat-l{font-size:11px;color:var(--soft);margin-top:3px}
+
+/* ── ROUTE ── */
+.map-wrap{margin:0 16px 12px;border-radius:18px;overflow:hidden;border:1px solid var(--border)}
+.map-hd{padding:11px 15px 9px;background:var(--card);display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--border)}
+.map-hd svg{width:13px;height:13px;stroke:var(--soft);stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.map-hd span{font-size:11px;font-weight:600;color:var(--soft);letter-spacing:.06em;text-transform:uppercase}
+#route-map{height:280px;width:100%}
+
+/* spot rows */
+.srow{margin:0 16px 7px;background:var(--card);border:1px solid var(--border);border-radius:15px;padding:12px 13px;display:flex;align-items:flex-start;gap:11px;position:relative;transition:transform .15s}
+.srow:active{transform:scale(.985)}
+.snum{width:29px;height:29px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;margin-top:2px}
+.sn-c{background:var(--mid)}.sn-p{background:var(--sage)}.sn-d{background:#B8860B}
+.sinfo{flex:1;min-width:0}
+.snamerow{display:flex;align-items:center;gap:7px;margin-bottom:2px}
+.sname{font-size:15px;font-weight:600;color:var(--deep)}
+.snights{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:var(--bg);color:var(--mid);white-space:nowrap;flex-shrink:0}
+.sstate{font-size:12px;color:var(--soft);margin-bottom:9px}
+.sicons{display:flex;gap:8px;align-items:center}
+.sib{width:33px;height:33px;border-radius:10px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s,transform .1s}
+.sib:active{background:var(--border);transform:scale(.93)}
+.sib svg{width:15px;height:15px;stroke:var(--deep);stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.sdel{position:absolute;top:10px;right:10px;width:21px;height:21px;border-radius:50%;background:var(--bg);border:1px solid var(--border);font-size:11px;color:var(--soft);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.drive-row{display:flex;align-items:center;gap:6px;padding:1px 16px 1px 28px;margin-bottom:3px}
+.drive-line{width:1px;height:18px;background:var(--border);margin-left:14px;flex-shrink:0}
+.drive-txt{font-size:11px;color:var(--soft);font-weight:500}
+.add-row{margin:4px 16px 0;border:1.5px dashed var(--border);border-radius:15px;padding:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;color:var(--soft);font-size:14px;font-weight:500;transition:border-color .2s,color .2s}
+.add-row:active{border-color:var(--sage);color:var(--sage)}
+
+/* ── HOTELS ── */
+.hsec{padding:10px 20px 8px;font-size:11px;font-weight:600;color:var(--soft);letter-spacing:.06em;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+.hsdot{width:6px;height:6px;border-radius:50%}
+.hcard2{margin:0 16px 9px;background:var(--card);border:1px solid var(--border);border-radius:17px;overflow:hidden;transition:transform .15s}
+.hcard2.past{opacity:.55}
+.hcard2.tonight{border-color:var(--sage)}
+.htop{padding:13px 13px 0;display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.hbadge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap;letter-spacing:.03em;flex-shrink:0}
+.hb-up{background:var(--bg);color:var(--mid)}.hb-now{background:#FDF0D0;color:var(--amber)}.hb-past{background:var(--bg2);color:var(--soft)}
+.hdates{font-size:11px;color:var(--soft);font-weight:500;margin-bottom:4px}
+.hname{font-family:'Fraunces',serif;font-size:19px;font-weight:400;line-height:1.2;color:var(--deep)}
+.hcity{font-size:13px;color:var(--soft);margin-top:2px;padding-bottom:10px}
+.hconf{font-size:12px;color:var(--soft);padding:0 13px 9px}
+.hbtns{display:flex;border-top:1px solid var(--border)}
+.hbtn{flex:1;background:none;border:none;border-right:1px solid var(--border);padding:11px 6px;font-size:12px;font-weight:600;font-family:inherit;color:var(--mid);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;transition:background .15s}
+.hbtn:last-child{border-right:none}
+.hbtn:active{background:var(--bg)}
+.hbtn svg{width:13px;height:13px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.hbtn.primary{color:var(--sage)}.hbtn.danger{color:var(--accent)}
+
+/* ── FOOD ── */
+.food-city-group{margin:0 16px 18px}
+.fcg-hd{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-top:4px}
+.fcg-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.fcg-name{font-family:'Fraunces',serif;font-size:18px;font-weight:400;color:var(--deep)}
+.fcg-state{font-size:12px;color:var(--soft);margin-left:2px}
+.fcard{background:var(--card);border:1px solid var(--border);border-radius:15px;padding:13px;margin-bottom:8px;transition:transform .15s}
+.fcard:active{transform:scale(.985)}
+.fcard-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:5px}
+.fname{font-size:14px;font-weight:600;color:var(--deep)}
+.ftag{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:var(--bg);color:var(--mid);white-space:nowrap;flex-shrink:0}
+.fnote{font-size:12px;color:var(--soft);margin-bottom:10px;line-height:1.55}
+.ficons{display:flex;gap:7px;align-items:center}
+.fib{width:32px;height:32px;border-radius:9px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s}
+.fib:active{background:var(--border)}
+.fib svg{width:14px;height:14px;stroke:var(--deep);stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.fdel{background:none;border:none;cursor:pointer;color:var(--border);font-size:15px;padding:4px;transition:color .15s;margin-left:auto}
+.fdel:active{color:var(--accent)}
+.food-add-row{border:1.5px dashed var(--border);border-radius:14px;padding:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;color:var(--soft);font-size:13px;font-weight:500;transition:border-color .2s,color .2s}
+.food-add-row:active{border-color:var(--amber);color:var(--amber)}
+.food-city-sel{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:11px 13px;font-size:15px;font-family:inherit;color:var(--deep);outline:none;-webkit-appearance:none;margin-bottom:14px}
+
+/* ── EXPENSES ── */
+.exp-card{margin:4px 16px 12px;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:17px}
+.exp-ct{font-family:'Fraunces',serif;font-size:20px;font-weight:300;color:var(--deep);margin-bottom:15px}
+.field{margin-bottom:11px}
+.fl{font-size:10px;font-weight:700;color:var(--soft);letter-spacing:.07em;text-transform:uppercase;margin-bottom:5px;display:block}
+.fi{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:11px;padding:11px 13px;font-size:15px;font-family:inherit;color:var(--deep);outline:none;transition:border-color .2s;-webkit-appearance:none}
+.fi:focus{border-color:var(--sage)}
+.frow{display:flex;gap:8px}
+.frow .field{flex:1;margin-bottom:0}
+.frow .field.fw{flex:none;width:118px}
+.btn-rec{width:100%;margin-top:13px;background:var(--deep);color:#fff;border:none;border-radius:13px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:opacity .2s,transform .15s}
+.btn-rec:active{opacity:.8;transform:scale(.98)}
+.pie-card{margin:0 16px 12px;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:17px}
+.pie-t{font-family:'Fraunces',serif;font-size:20px;font-weight:300;color:var(--deep);margin-bottom:15px}
+.pie-lay{display:flex;gap:14px;align-items:center}
+.pie-leg{flex:1;display:flex;flex-direction:column;gap:9px}
+.pie-i{display:flex;align-items:center;gap:7px}
+.pie-d{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.pie-n{font-size:13px;color:var(--soft);flex:1}
+.pie-a{font-size:13px;font-weight:600;color:var(--deep)}
+.pie-tot{margin-top:13px;padding-top:11px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:baseline}
+.pie-tot-l{font-size:12px;color:var(--soft)}
+.pie-tot-n{font-family:'Fraunces',serif;font-size:28px;font-weight:300;color:var(--amber)}
+.tl-card{margin:0 16px 0;background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden}
+.tli{display:flex;align-items:center;gap:11px;padding:12px 13px;border-bottom:1px solid var(--border)}
+.tli:last-child{border-bottom:none}
+.tl-lt{min-width:38px;text-align:center;flex-shrink:0}
+.tl-dt{font-size:10px;font-weight:600;color:var(--soft);line-height:1.3}
+.tl-dot{width:7px;height:7px;border-radius:50%;margin:3px auto 0}
+.tl-md{flex:1;min-width:0}
+.tl-desc{font-size:14px;font-weight:500;color:var(--deep)}
+.tl-cat{font-size:11px;color:var(--soft);margin-top:1px}
+.tl-rt{display:flex;align-items:center;gap:7px;flex-shrink:0}
+.tl-amt{font-family:'Fraunces',serif;font-size:16px;font-weight:400;color:var(--amber)}
+.tl-del{background:none;border:none;cursor:pointer;padding:4px;color:var(--border);font-size:14px;transition:color .15s}
+.tl-del:active{color:var(--accent)}
+
+/* empty */
+.empty{text-align:center;padding:34px 20px;color:var(--soft)}
+.ei{font-size:30px;margin-bottom:9px;opacity:.6}
+.et{font-size:13px;color:var(--soft)}
+
+/* modals */
+.overlay{position:fixed;inset:0;background:rgba(20,32,24,.5);z-index:200;display:none;align-items:flex-end;backdrop-filter:blur(6px)}
+.overlay.open{display:flex;animation:fi .2s}
+@keyframes fi{from{opacity:0}to{opacity:1}}
+.modal{background:var(--card);border-radius:26px 26px 0 0;padding:18px 20px calc(26px + env(safe-area-inset-bottom,0px));width:100%;max-height:92vh;overflow-y:auto;animation:su .3s cubic-bezier(.34,1.56,.64,1)}
+.modal::-webkit-scrollbar{display:none}
+@keyframes su{from{transform:translateY(60px);opacity:0}to{transform:translateY(0);opacity:1}}
+.mhandle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px}
+.mtitle{font-family:'Fraunces',serif;font-size:24px;font-weight:300;color:var(--deep);margin-bottom:18px}
+.mf{margin-bottom:13px}
+.mf label{font-size:10px;font-weight:700;color:var(--soft);letter-spacing:.07em;text-transform:uppercase;margin-bottom:5px;display:block}
+.mf input,.mf select,.mf textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:11px;padding:11px 13px;font-size:15px;font-family:inherit;color:var(--deep);outline:none;transition:border-color .2s;-webkit-appearance:none}
+.mf input:focus,.mf select:focus,.mf textarea:focus{border-color:var(--sage)}
+.btn-save{width:100%;background:var(--deep);color:#fff;border:none;border-radius:13px;padding:14px;font-size:16px;font-weight:700;font-family:inherit;cursor:pointer;margin-top:7px;transition:opacity .2s,transform .15s}
+.btn-save:active{opacity:.8;transform:scale(.98)}
+.btn-cancel{width:100%;background:none;color:var(--soft);border:1px solid var(--border);border-radius:13px;padding:12px;font-size:15px;font-family:inherit;cursor:pointer;margin-top:7px}
+
+/* leaflet */
+.leaflet-container{font-family:inherit}
+.leaflet-popup-content-wrapper{border-radius:12px;border:1px solid var(--border);box-shadow:0 4px 14px rgba(0,0,0,.12)}
+.leaflet-popup-content{margin:9px 13px;font-size:13px;font-weight:500;color:var(--deep)}
+.leaflet-popup-tip{background:#fff}
+.drive-lbl{background:#fff;border:1px solid var(--border);border-radius:8px;padding:3px 8px;font-size:11px;font-weight:600;color:var(--mid);white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.08)}
+.stop-lbl{background:rgba(255,255,255,0.92);border:1px solid var(--border);border-radius:6px;padding:3px 7px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.10);pointer-events:none;line-height:1.3}
+.stop-lbl-name{font-size:11px;font-weight:700;color:var(--deep);font-family:"PingFang SC","SF Pro Text",-apple-system,sans-serif}
+.stop-lbl-state{font-size:9px;color:var(--soft);font-family:"PingFang SC","SF Pro Text",-apple-system,sans-serif}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ══ HOME ══ -->
+<div class="page active screen" id="page-home">
+  <div class="home-top">
+    <div class="hh-menu"><span></span><span></span><span></span></div>
+    <div class="hh-r">
+      <div class="hh-bell">
+        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        <div class="bdot"></div>
+      </div>
+      <div class="hh-av">C</div>
+    </div>
+  </div>
+  <div class="greeting">
+    <div class="g-sm">Let's travel ✦</div>
+    <div class="g-big">Hey, <em>Ciel</em> 👋<br>Ready to roll?</div>
+  </div>
+  <div class="banner">
+    <div class="banner-bg"></div>
+    <div class="b-label">YOUR ROAD TRIP · 2025</div>
+    <div class="b-title">Rochester <em>→</em> Irvine</div>
+    <div class="b-sub">Jun 1 – Jun 22 · Across 7 States</div>
+    <div class="b-stats">
+      <div class="bst"><div class="bst-n">22</div><div class="bst-l">Days</div></div>
+      <div class="bst"><div class="bst-n">4</div><div class="bst-l">Nat'l Parks</div></div>
+      <div class="bst"><div class="bst-n">≤5h</div><div class="bst-l">Drive/Day</div></div>
+    </div>
+  </div>
+  <div class="prog" id="h-prog">
+    <div class="prog-hd"><div class="prog-lbl">Trip Progress</div><div class="prog-pct" id="h-pct">0%</div></div>
+    <div class="prog-track"><div class="prog-fill" id="h-fill" style="width:0%"><div class="prog-thumb"></div></div></div>
+    <div class="prog-dots" id="h-dots"></div>
+  </div>
+  <div class="chips">
+    <div class="chip on" onclick="hFilter('all',this)">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>All
+    </div>
+    <div class="chip" onclick="hFilter('city',this)">
+      <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="15"/><path d="M16 22V12h-4v10"/><path d="M2 7l10-5 10 7"/></svg>Cities
+    </div>
+    <div class="chip" onclick="hFilter('park',this)">
+      <svg viewBox="0 0 24 24"><path d="M17 21L12 9 7 21"/><path d="M3 21l4.5-12"/><path d="M20.5 21L16 9"/><line x1="6.5" y1="15" x2="17.5" y2="15"/></svg>Parks
+    </div>
+    <div class="chip" onclick="hFilter('hotel',this)">
+      <svg viewBox="0 0 24 24"><path d="M2 20v-6a2 2 0 012-2h16a2 2 0 012 2v6"/><path d="M2 10l10-7 10 7"/><rect x="10" y="14" width="4" height="6"/></svg>Hotels
+    </div>
+  </div>
+  <div class="sec"><div class="sec-t">Up Next</div></div>
+  <div class="hscroll" id="h-scroll"></div>
+  <div class="sec" style="padding-top:2px"><div class="sec-t">Spending</div></div>
+  <div class="qstats">
+    <div class="qstat"><div class="qstat-n" id="qs-tot">$0</div><div class="qstat-l">Total spent</div></div>
+    <div class="qstat"><div class="qstat-n" id="qs-days">0</div><div class="qstat-l">Days logged</div></div>
+    <div class="qstat"><div class="qstat-n" id="qs-top">—</div><div class="qstat-l">Top category</div></div>
+    <div class="qstat"><div class="qstat-n" id="qs-cnt">0</div><div class="qstat-l">Entries</div></div>
+  </div>
+  <div style="height:8px"></div>
+</div>
+
+<!-- ══ ROUTE ══ -->
+<div class="page screen" id="page-route">
+  <div class="ph">
+    <div><div class="ph-t">Ro<em>ute</em></div><div class="ph-s">Tap a stop for options</div></div>
+    <button class="ph-btn" onclick="openM('m-spot')">＋ Add Stop</button>
+  </div>
+  <div class="map-wrap">
+    <div class="map-hd">
+      <svg viewBox="0 0 24 24"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
+      <span>Live Route Map</span>
+    </div>
+    <div id="route-map"></div>
+  </div>
+  <div class="prog">
+    <div class="prog-hd"><div class="prog-lbl">Trip Progress</div><div class="prog-pct" id="r-pct">0%</div></div>
+    <div class="prog-track"><div class="prog-fill" id="r-fill" style="width:0%"><div class="prog-thumb"></div></div></div>
+    <div class="prog-dots" id="r-dots"></div>
+  </div>
+  <div style="font-size:11px;font-weight:600;color:var(--soft);letter-spacing:.06em;text-transform:uppercase;padding:14px 20px 9px">Stops</div>
+  <div id="spots-list"></div>
+  <div class="add-row" onclick="openM('m-spot')"><span style="font-size:20px;color:var(--border)">＋</span><span>Add a stop</span></div>
+  <div style="height:8px"></div>
+</div>
+
+<!-- ══ HOTELS ══ -->
+<div class="page screen" id="page-hotels">
+  <div class="ph">
+    <div><div class="ph-t">Ho<em>tels</em></div><div class="ph-s">Auto-archived when past</div></div>
+    <button class="ph-btn" onclick="openM('m-hotel')">＋ Add</button>
+  </div>
+  <div id="hotels-list"></div>
+  <div style="height:8px"></div>
+</div>
+
+<!-- ══ FOOD ══ -->
+<div class="page screen" id="page-food">
+  <div class="ph">
+    <div><div class="ph-t">Ea<em>ts</em></div><div class="ph-s">Saved by city</div></div>
+    <button class="ph-btn" onclick="openM('m-food')">＋ Add</button>
+  </div>
+  <div id="food-list"></div>
+  <div style="height:8px"></div>
+</div>
+
+<!-- ══ EXPENSES ══ -->
+<div class="page screen" id="page-expenses">
+  <div class="ph" style="position:relative">
+    <div><div class="ph-t">Spen<em>ding</em></div><div class="ph-s">Auto-categorized</div></div>
+  </div>
+  <div class="exp-card">
+    <div class="exp-ct">Log an expense</div>
+    <div class="field"><label class="fl">Description</label><input class="fi" id="e-desc" placeholder="Gas, Lunch, Park ticket…" type="text"></div>
+    <div class="frow">
+      <div class="field"><label class="fl">Date</label><input class="fi" id="e-date" type="date"></div>
+      <div class="field fw"><label class="fl">Amount $</label><input class="fi" id="e-amt" placeholder="0.00" type="number" inputmode="decimal" step="0.01"></div>
+    </div>
+    <button class="btn-rec" onclick="addExp()">Record ✓</button>
+  </div>
+  <div class="pie-card">
+    <div class="pie-t">Breakdown</div>
+    <div id="pie-wrap"><div class="empty"><div class="ei">🌵</div><div class="et">No expenses yet</div></div></div>
+  </div>
+  <div style="font-size:11px;font-weight:600;color:var(--soft);letter-spacing:.06em;text-transform:uppercase;padding:4px 20px 9px">Timeline</div>
+  <div class="tl-card" id="tl-wrap"><div class="empty"><div class="ei">📋</div><div class="et">Entries appear here</div></div></div>
+  <div style="height:8px"></div>
+</div>
+
+<!-- ══ TABS ══ -->
+<div class="tabs">
+  <div class="tabs-inner">
+    <div class="tab" id="tab-route" onclick="goTab('route',this)">
+      <div class="ti"><svg viewBox="0 0 24 24"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg></div>
+      <div class="tdot"></div><div class="tl">Route</div>
+    </div>
+    <div class="tab" id="tab-hotels" onclick="goTab('hotels',this)">
+      <div class="ti"><svg viewBox="0 0 24 24"><path d="M2 20v-6a2 2 0 012-2h16a2 2 0 012 2v6"/><path d="M2 10l10-7 10 7"/><rect x="10" y="14" width="4" height="6"/></svg></div>
+      <div class="tdot"></div><div class="tl">Hotels</div>
+    </div>
+    <div class="tab-home-wrap active" id="tab-home" onclick="goTabHome()">
+      <div class="tab-home-btn">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </div>
+      <div class="tab-home-lbl">Home</div>
+    </div>
+    <div class="tab" id="tab-food" onclick="goTab('food',this)">
+      <div class="ti"><svg viewBox="0 0 24 24"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2"/><line x1="7" y1="2" x2="7" y2="11"/><path d="M21 15a2 2 0 00-2-2H5a2 2 0 00-2 2v3a2 2 0 002 2h14a2 2 0 002-2v-3z"/></svg></div>
+      <div class="tdot"></div><div class="tl">Eats</div>
+    </div>
+    <div class="tab" id="tab-expenses" onclick="goTab('expenses',this)">
+      <div class="ti"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
+      <div class="tdot"></div><div class="tl">Spending</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- SPOT MODAL -->
+<div class="overlay" id="m-spot" onclick="overlayClose(event,'m-spot')">
+  <div class="modal">
+    <div class="mhandle"></div><div class="mtitle">Add a stop</div>
+    <div class="mf"><label>Name</label><input id="s-name" placeholder="e.g. Yosemite National Park"></div>
+    <div class="mf"><label>State</label><input id="s-state" placeholder="e.g. California"></div>
+    <div class="mf"><label>Type</label><select id="s-type"><option value="city">City</option><option value="park">National Park</option><option value="desert">Desert / Nature</option></select></div>
+    <div class="mf"><label>Nights (0 = passing through)</label><input id="s-nights" type="number" placeholder="2" min="0"></div>
+    <div class="mf"><label>Navigation keyword</label><input id="s-map" placeholder="e.g. Yosemite Valley CA"></div>
+    <div class="mf"><label>Latitude</label><input id="s-lat" type="number" step="any" placeholder="37.8651"></div>
+    <div class="mf"><label>Longitude</label><input id="s-lng" type="number" step="any" placeholder="-119.5383"></div>
+    <button class="btn-save" onclick="saveSpot()">Add stop</button>
+    <button class="btn-cancel" onclick="closeM('m-spot')">Cancel</button>
+  </div>
+</div>
+
+<!-- HOTEL MODAL -->
+<div class="overlay" id="m-hotel" onclick="overlayClose(event,'m-hotel')">
+  <div class="modal">
+    <div class="mhandle"></div><div class="mtitle">Add a hotel</div>
+    <div class="mf"><label>Hotel name</label><input id="h-name" placeholder="e.g. Hilton Garden Inn Moab"></div>
+    <div class="mf"><label>City</label><input id="h-city" placeholder="e.g. Moab, UT"></div>
+    <div class="mf"><label>Check-in</label><input id="h-in" type="date"></div>
+    <div class="mf"><label>Check-out</label><input id="h-out" type="date"></div>
+    <div class="mf"><label>Confirmation / Notes</label><input id="h-conf" placeholder="Booking ref, phone…"></div>
+    <div class="mf"><label>Website (optional)</label><input id="h-url" type="url" placeholder="https://"></div>
+    <div class="mf"><label>Navigation address</label><input id="h-map" placeholder="e.g. Hilton Garden Inn Moab Utah"></div>
+    <button class="btn-save" onclick="saveHotel()">Save hotel</button>
+    <button class="btn-cancel" onclick="closeM('m-hotel')">Cancel</button>
+  </div>
+</div>
+
+<!-- FOOD MODAL -->
+<div class="overlay" id="m-food" onclick="overlayClose(event,'m-food')">
+  <div class="modal">
+    <div class="mhandle"></div><div class="mtitle">Save a restaurant</div>
+    <div class="mf"><label>City</label>
+      <select class="food-city-sel" id="f-city"></select>
+    </div>
+    <div class="mf"><label>Restaurant name</label><input id="f-name" placeholder="e.g. Lou Malnati's"></div>
+    <div class="mf"><label>Cuisine / tag</label><input id="f-tag" placeholder="e.g. Deep dish pizza"></div>
+    <div class="mf"><label>Notes (hours, must-order…)</label><textarea id="f-note" rows="3" placeholder="e.g. Butter crust is a must, open till 11pm"></textarea></div>
+    <div class="mf"><label>Navigation address</label><input id="f-map" placeholder="e.g. Lou Malnati's Chicago"></div>
+    <button class="btn-save" onclick="saveFood()">Save</button>
+    <button class="btn-cancel" onclick="closeM('m-food')">Cancel</button>
+  </div>
+</div>
+
+<script>
+// ══════════════ DATA ══════════════
+const TODAY = new Date(); TODAY.setHours(0,0,0,0);
+
+let spots = [
+  {id:1,  name:'Rochester',     state:'New York',    type:'city',   nights:0, map:'Rochester NY',                         lat:43.1566, lng:-77.6088},
+  {id:2,  name:'Cleveland',     state:'Ohio',        type:'city',   nights:1, map:'Cleveland OH',                         lat:41.4993, lng:-81.6944},
+  {id:3,  name:'Chicago',       state:'Illinois',    type:'city',   nights:2, map:'Chicago IL',                           lat:41.8781, lng:-87.6298},
+  {id:4,  name:'Omaha',         state:'Nebraska',    type:'city',   nights:1, map:'Omaha NE',                             lat:41.2565, lng:-95.9345},
+  {id:5,  name:'Denver',        state:'Colorado',    type:'city',   nights:2, map:'Denver CO',                            lat:39.7392, lng:-104.9903},
+  {id:6,  name:'Moab / Arches', state:'Utah',        type:'park',   nights:2, map:'Arches National Park Utah',            lat:38.7331, lng:-109.5925},
+  {id:7,  name:'Zion',          state:'Utah',        type:'park',   nights:2, map:'Zion National Park Utah',              lat:37.2982, lng:-113.0263},
+  {id:8,  name:'Yosemite',      state:'California',  type:'park',   nights:3, map:'Yosemite Valley California',           lat:37.8651, lng:-119.5383},
+  {id:9,  name:'Sequoia',       state:'California',  type:'park',   nights:2, map:'Sequoia National Park California',     lat:36.4864, lng:-118.5658},
+  {id:10, name:'Joshua Tree',   state:'California',  type:'desert', nights:0, map:'Joshua Tree National Park California', lat:33.8734, lng:-115.9010},
+  {id:11, name:'Los Angeles',   state:'California',  type:'city',   nights:2, map:'Los Angeles CA',                       lat:34.0522, lng:-118.2437},
+  {id:12, name:'Irvine',        state:'California',  type:'city',   nights:0, map:'Irvine CA',                            lat:33.6846, lng:-117.8265},
+];
+
+const DRIVE = ['3h','5h','7h','5h','4h','4h','5h','3h','4.5h','2h','1h'];
+
+let hotels = [
+  {id:1,name:'Marriott Cleveland Downtown',city:'Cleveland, OH',checkin:'2025-06-01',checkout:'2025-06-02',conf:'',url:'https://marriott.com',map:'Marriott Cleveland Downtown Ohio'},
+  {id:2,name:'Hilton Chicago',city:'Chicago, IL',checkin:'2025-06-02',checkout:'2025-06-04',conf:'',url:'https://hilton.com',map:'Hilton Chicago Michigan Ave'},
+  {id:3,name:'Marriott Omaha Downtown',city:'Omaha, NE',checkin:'2025-06-05',checkout:'2025-06-06',conf:'',url:'https://marriott.com',map:'Marriott Omaha Downtown'},
+  {id:4,name:'Marriott Denver City Center',city:'Denver, CO',checkin:'2025-06-06',checkout:'2025-06-08',conf:'',url:'https://marriott.com',map:'Marriott Denver City Center'},
+  {id:5,name:'Hilton Garden Inn Moab',city:'Moab, UT',checkin:'2025-06-08',checkout:'2025-06-10',conf:'',url:'https://hilton.com',map:'Hilton Garden Inn Moab Utah'},
+  {id:6,name:'Desert Pearl Inn',city:'Springdale, UT',checkin:'2025-06-10',checkout:'2025-06-12',conf:'',url:'https://desertpearl.com',map:'Desert Pearl Inn Springdale Utah'},
+  {id:7,name:'Yosemite View Lodge',city:'El Portal, CA',checkin:'2025-06-14',checkout:'2025-06-17',conf:'',url:'https://yosemiteresorts.com',map:'Yosemite View Lodge El Portal CA'},
+  {id:8,name:'Marriott Courtyard Visalia',city:'Visalia, CA',checkin:'2025-06-17',checkout:'2025-06-19',conf:'',url:'https://marriott.com',map:'Courtyard Marriott Visalia California'},
+  {id:9,name:'Le Méridien Santa Monica',city:'Santa Monica, CA',checkin:'2025-06-19',checkout:'2025-06-22',conf:'',url:'https://marriott.com',map:'Le Meridien Delfina Santa Monica'},
+];
+
+// foods grouped by city name
+let foods = [
+  {id:1,city:'Chicago',name:"Lou Malnati's",tag:'Deep dish pizza',note:'Butter crust is a must. Book ahead — gets packed.',map:"Lou Malnati's Chicago IL"},
+  {id:2,city:'Chicago',name:'Garrett Popcorn',tag:'Chicago snack',note:'Get the Chicago Mix (cheese + caramel). Airport and loop locations.',map:'Garrett Popcorn Chicago IL'},
+  {id:3,city:'Denver',name:'RiNo Yacht Club',tag:'Cocktails & bites',note:'Great vibe in the arts district. Good for evening drinks.',map:'RiNo Yacht Club Denver CO'},
+  {id:4,city:'Denver',name:'Work & Class',tag:'Latin American',note:'Fried chicken & grits are amazing. Small plates, get multiple.',map:'Work and Class Denver CO'},
+  {id:5,city:'Moab / Arches',name:'Moab Diner',tag:'American diner',note:'Classic diner right in town, big portions, open early.',map:'Moab Diner Utah'},
+  {id:6,city:'Yosemite',name:'Village Grill Deck',tag:'Burgers & sandwiches',note:'Right in Yosemite Valley. Grab-and-go style, eat on the deck.',map:'Village Grill Yosemite Valley CA'},
+  {id:7,city:'Los Angeles',name:'Grand Central Market',tag:'Food hall',note:'Historic market downtown LA — tacos, Thai, coffee, everything.',map:'Grand Central Market Los Angeles CA'},
+  {id:8,city:'Los Angeles',name:'In-N-Out Burger',tag:'West Coast must',note:'West Coast institution. Animal style burger is the move.',map:'In-N-Out Burger Los Angeles CA'},
+];
+
+let expenses = [];
+let sid=400, hid=400, fid=200, eid=1;
+let leafMap = null;
+const CATS={Gas:'#4A6055',Food:'#7A9485',Hotel:'#2E5040',Tickets:'#8A7060',Shopping:'#B8860B',Parking:'#5A7080',Other:'#9E8F7F'};
+
+function guessCAT(d){
+  d=d.toLowerCase();
+  if(/gas|fuel|shell|bp|exxon|chevron/.test(d))return'Gas';
+  if(/eat|food|lunch|dinner|breakfast|coffee|cafe|restaurant|pizza|burger|taco|sushi|bar/.test(d))return'Food';
+  if(/hotel|inn|lodge|motel|airbnb|resort|stay/.test(d))return'Hotel';
+  if(/ticket|park|admission|entry|fee|permit/.test(d))return'Tickets';
+  if(/shop|store|walmart|target|costco|souvenir|buy|market/.test(d))return'Shopping';
+  if(/parking|park/.test(d))return'Parking';
+  return'Other';
+}
+
+// ══════════════ MAP ══════════════
+function initMap(){
+  if(leafMap)return;
+  leafMap=L.map('route-map',{zoomControl:false,scrollWheelZoom:false,dragging:true,touchZoom:true});
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    attribution:'© <a href="https://www.openstreetmap.org/copyright">OSM</a> contributors',
+    maxZoom:18
+  }).addTo(leafMap);
+  L.control.zoom({position:'bottomright'}).addTo(leafMap);
+  drawMap();
+  setTimeout(()=>leafMap.invalidateSize(),250);
+}
+
+function drawMap(){
+  if(!leafMap)return;
+  leafMap.eachLayer(l=>{if(!(l instanceof L.TileLayer))leafMap.removeLayer(l);});
+  const ll=spots.map(s=>[s.lat,s.lng]);
+  L.polyline(ll,{color:'#D4875A',weight:3,opacity:.9,dashArray:'7,5',lineJoin:'round'}).addTo(leafMap);
+  spots.forEach((s,i)=>{
+    const col=s.type==='park'?'#6B8060':s.type==='desert'?'#C49A2A':'#6B5E50';
+    const sz=i===0||i===spots.length-1?13:10;
+    // alternate label above/below to reduce overlap
+    const above=i%2===0;
+    const lblTop=above?-(sz/2+32):(sz/2+5);
+    const icon=L.divIcon({
+      className:'',
+      html:`<div style="position:relative;width:${sz}px;height:${sz}px">
+        <div style="width:${sz}px;height:${sz}px;border-radius:50%;background:${col};border:2.5px solid white;box-shadow:0 1px 5px rgba(0,0,0,.28)"></div>
+        <div class="stop-lbl" style="position:absolute;left:50%;transform:translateX(-50%);top:${lblTop}px;text-align:center">
+          <div class="stop-lbl-name">${s.name.split('/')[0].trim()}</div>
+          <div class="stop-lbl-state">${s.state}</div>
+        </div>
+      </div>`,
+      iconSize:[sz,sz],
+      iconAnchor:[sz/2,sz/2],
+    });
+    L.marker([s.lat,s.lng],{icon}).addTo(leafMap)
+     .bindPopup(`<b>${s.name}</b><br><span style="color:#7A9485;font-size:12px">${s.state}${s.nights>0?' · '+s.nights+' nights':' · passing through'}</span>`);
+    if(i<spots.length-1&&DRIVE[i]){
+      const ns=spots[i+1];
+      const ml=(s.lat+ns.lat)/2, mg=(s.lng+ns.lng)/2;
+      L.marker([ml,mg],{icon:L.divIcon({className:'drive-lbl',html:`🚗 ${DRIVE[i]}`,iconSize:null,iconAnchor:null})}).addTo(leafMap);
+    }
+  });
+  leafMap.fitBounds(L.latLngBounds(ll),{padding:[20,20]});
+}
+
+// ══════════════ TABS ══════════════
+function goTab(name,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-home').classList.remove('active');
+  document.getElementById('page-'+name).classList.add('active');
+  if(el)el.classList.add('active');
+  if(name==='route')setTimeout(initMap,120);
+}
+function goTabHome(){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-home').classList.add('active');
+  document.getElementById('page-home').classList.add('active');
+}
+
+// ══════════════ MODALS ══════════════
+function openM(id){document.getElementById(id).classList.add('open');}
+function closeM(id){document.getElementById(id).classList.remove('open');}
+function overlayClose(e,id){if(e.target.classList.contains('overlay'))closeM(id);}
+function navA(q){window.open('https://maps.apple.com/?q='+encodeURIComponent(q),'_blank');}
+
+// ══════════════ PROGRESS ══════════════
+function renderProg(fId,pId,dId){
+  document.getElementById(fId).style.width='0%';
+  document.getElementById(pId).textContent='0%';
+  const el=document.getElementById(dId); el.innerHTML='';
+  const maxD=7,step=Math.max(1,Math.ceil(spots.length/maxD));
+  const idx=[];
+  for(let i=0;i<spots.length;i+=step)idx.push(i);
+  if(idx[idx.length-1]!==spots.length-1)idx.push(spots.length-1);
+  idx.slice(0,maxD).forEach(si=>{
+    const s=spots[si];
+    const d=document.createElement('div');
+    d.className='pdot'+(si===0?' current':'');
+    d.innerHTML=`<div class="pdot-c"></div><div class="pdot-n">${s.name.split('/')[0].split(' ')[0]}</div>`;
+    el.appendChild(d);
+  });
+}
+
+// ══════════════ HOME ══════════════
+let hf='all';
+function hFilter(f,el){
+  hf=f;
+  document.querySelectorAll('.chips .chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  renderHScroll();
+}
+
+function renderHScroll(){
+  const el=document.getElementById('h-scroll'); el.innerHTML='';
+  const imgC=['c-sage','c-sand','c-slate','c-terra'];
+  const icn={
+    city:`<svg viewBox="0 0 24 24" style="width:46px;height:46px;stroke:var(--deep);stroke-width:1.3;fill:none;stroke-linecap:round;stroke-linejoin:round;opacity:.45"><rect x="2" y="7" width="20" height="15"/><path d="M16 22V12h-4v10"/><path d="M2 7l10-5 10 7"/></svg>`,
+    park:`<svg viewBox="0 0 24 24" style="width:46px;height:46px;stroke:var(--deep);stroke-width:1.3;fill:none;stroke-linecap:round;stroke-linejoin:round;opacity:.45"><path d="M17 21L12 9 7 21"/><path d="M3 21l4.5-12"/><path d="M20.5 21L16 9"/><line x1="6.5" y1="15" x2="17.5" y2="15"/></svg>`,
+    desert:`<svg viewBox="0 0 24 24" style="width:46px;height:46px;stroke:var(--deep);stroke-width:1.3;fill:none;stroke-linecap:round;stroke-linejoin:round;opacity:.45"><path d="M12 2C8 10 4 13 4 17h16c0-4-4-7-8-15z"/></svg>`,
+  };
+  let list=hf==='all'?spots:hf==='hotel'?[]:spots.filter(s=>s.type===hf);
+  if(hf==='hotel'){
+    hotels.filter(h=>new Date(h.checkout)>=TODAY).slice(0,5).forEach(h=>{
+      const d=document.createElement('div');d.className='hcard';
+      const cs=new Date(h.checkin).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+      d.innerHTML=`<div class="hcard-img c-sage">${icn.city}</div><div class="hcard-body"><div class="hcard-name">${h.name.split(' ').slice(0,2).join(' ')}</div><div class="hcard-state">${h.city}</div><div class="hcard-badge">${cs}</div></div>`;
+      el.appendChild(d);
+    });
+    return;
+  }
+  list.forEach((s,i)=>{
+    const d=document.createElement('div');d.className='hcard';
+    const nm=s.nights>0?`${s.nights} nights`:'Through';
+    d.innerHTML=`<div class="hcard-img ${imgC[i%4]}">${icn[s.type]||icn.city}</div><div class="hcard-body"><div class="hcard-name">${s.name}</div><div class="hcard-state">${s.state}</div><div class="hcard-badge">${nm}</div></div>`;
+    el.appendChild(d);
+  });
+}
+
+function renderHomeStats(){
+  const tot=expenses.reduce((a,e)=>a+e.amt,0);
+  const days=new Set(expenses.map(e=>e.dateVal)).size;
+  const cats={};expenses.forEach(e=>{cats[e.cat]=(cats[e.cat]||0)+e.amt;});
+  const top=Object.entries(cats).sort((a,b)=>b[1]-a[1])[0];
+  document.getElementById('qs-tot').textContent='$'+tot.toFixed(0);
+  document.getElementById('qs-days').textContent=days;
+  document.getElementById('qs-top').textContent=top?top[0]:'—';
+  document.getElementById('qs-cnt').textContent=expenses.length;
+}
+
+// ══════════════ SPOTS ══════════════
+function renderSpots(){
+  const list=document.getElementById('spots-list'); list.innerHTML='';
+  spots.forEach((s,i)=>{
+    const nc=s.type==='park'?'sn-p':s.type==='desert'?'sn-d':'sn-c';
+    const nm=s.nights>0?`${s.nights} nights`:'Passing through';
+    const div=document.createElement('div'); div.className='srow';
+    div.innerHTML=`
+      <div class="snum ${nc}">${i+1}</div>
+      <div class="sinfo">
+        <div class="snamerow"><div class="sname">${s.name}</div><div class="snights">${nm}</div></div>
+        <div class="sstate">${s.state}</div>
+        <div class="sicons">
+          <div class="sib" onclick="navA('${s.map}')" title="Apple Maps">
+            <svg viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+          </div>
+          <div class="sib" onclick="openFoodForCity('${s.name}')" title="Eats">
+            <svg viewBox="0 0 24 24"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2"/><line x1="7" y1="2" x2="7" y2="11"/><path d="M21 15a2 2 0 00-2-2H5a2 2 0 00-2 2v3a2 2 0 002 2h14a2 2 0 002-2v-3z"/></svg>
+          </div>
+          <div class="sib" onclick="goTab('hotels',document.querySelectorAll('.tab')[2])" title="Hotels">
+            <svg viewBox="0 0 24 24"><path d="M2 20v-6a2 2 0 012-2h16a2 2 0 012 2v6"/><path d="M2 10l10-7 10 7"/><rect x="10" y="14" width="4" height="6"/></svg>
+          </div>
+        </div>
+      </div>
+      <button class="sdel" onclick="delSpot(${s.id})">✕</button>`;
+    list.appendChild(div);
+    if(i<spots.length-1&&DRIVE[i]){
+      const dr=document.createElement('div'); dr.className='drive-row';
+      dr.innerHTML=`<div class="drive-line"></div><div class="drive-txt">🚗 ${DRIVE[i]} drive</div>`;
+      list.appendChild(dr);
+    }
+  });
+  renderProg('r-fill','r-pct','r-dots');
+  renderProg('h-fill','h-pct','h-dots');
+  renderHScroll();
+  populateFoodCitySel();
+}
+
+function saveSpot(){
+  const name=document.getElementById('s-name').value.trim(); if(!name)return;
+  spots.push({id:sid++,name,state:document.getElementById('s-state').value.trim(),type:document.getElementById('s-type').value,nights:parseInt(document.getElementById('s-nights').value)||0,map:document.getElementById('s-map').value.trim()||name,lat:parseFloat(document.getElementById('s-lat').value)||37,lng:parseFloat(document.getElementById('s-lng').value)||-100});
+  DRIVE.push('?h');
+  ['s-name','s-state','s-nights','s-map','s-lat','s-lng'].forEach(id=>document.getElementById(id).value='');
+  closeM('m-spot'); renderSpots();
+  if(leafMap){leafMap.remove();leafMap=null;setTimeout(initMap,120);}
+}
+
+function delSpot(id){
+  if(!confirm('Remove this stop?'))return;
+  const idx=spots.findIndex(s=>s.id===id);
+  spots=spots.filter(s=>s.id!==id); DRIVE.splice(idx,1);
+  renderSpots();
+  if(leafMap){leafMap.remove();leafMap=null;setTimeout(initMap,120);}
+}
+
+// ══════════════ HOTELS ══════════════
+function renderHotels(){
+  const el=document.getElementById('hotels-list');
+  const up=hotels.filter(h=>new Date(h.checkout)>=TODAY).sort((a,b)=>new Date(a.checkin)-new Date(b.checkin));
+  const past=hotels.filter(h=>new Date(h.checkout)<TODAY).sort((a,b)=>new Date(b.checkin)-new Date(a.checkin));
+  let html='';
+  if(up.length){html+=`<div class="hsec"><div class="hsdot" style="background:var(--amber)"></div>Upcoming · ${up.length}</div>`;up.forEach(h=>html+=hotelHTML(h));}
+  if(past.length){html+=`<div class="hsec" style="margin-top:14px"><div class="hsdot" style="background:var(--border)"></div>Completed</div>`;past.forEach(h=>html+=hotelHTML(h));}
+  if(!hotels.length)html=`<div class="empty"><div class="ei">🏨</div><div class="et">No hotels saved yet</div></div>`;
+  el.innerHTML=html;
+}
+
+function hotelHTML(h){
+  const cin=new Date(h.checkin),cout=new Date(h.checkout);
+  const nights=Math.round((cout-cin)/86400000);
+  const isPast=cout<TODAY,isNow=cin<=TODAY&&cout>TODAY;
+  const badge=isPast?`<span class="hbadge hb-past">Completed</span>`:isNow?`<span class="hbadge hb-now">Tonight 🌙</span>`:`<span class="hbadge hb-up">Upcoming</span>`;
+  const cs=cin.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  const co=cout.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  const conf=h.conf?`<div class="hconf">📋 ${h.conf}</div>`:'';
+  const urlBtn=h.url?`<button class="hbtn" onclick="window.open('${h.url}','_blank')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>Website</button>`:'';
+  return `<div class="hcard2 ${isPast?'past':isNow?'tonight':''}">
+    <div class="htop"><div style="flex:1;min-width:0"><div class="hdates">${cs} – ${co} · ${nights} nights</div><div class="hname">${h.name}</div><div class="hcity">${h.city}</div></div>${badge}</div>
+    ${conf}
+    <div class="hbtns">
+      <button class="hbtn primary" onclick="navA('${h.map||h.name}')"><svg viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>Navigate</button>
+      ${urlBtn}
+      <button class="hbtn danger" onclick="delHotel(${h.id})"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>
+    </div>
+  </div>`;
+}
+
+function saveHotel(){
+  const name=document.getElementById('h-name').value.trim();
+  const ci=document.getElementById('h-in').value,co=document.getElementById('h-out').value;
+  if(!name||!ci||!co){alert('Please fill in name and dates');return;}
+  hotels.push({id:hid++,name,city:document.getElementById('h-city').value.trim(),checkin:ci,checkout:co,conf:document.getElementById('h-conf').value.trim(),url:document.getElementById('h-url').value.trim(),map:document.getElementById('h-map').value.trim()||name});
+  ['h-name','h-city','h-in','h-out','h-conf','h-url','h-map'].forEach(id=>document.getElementById(id).value='');
+  closeM('m-hotel'); renderHotels();
+}
+
+function delHotel(id){
+  if(!confirm('Remove this hotel?'))return;
+  hotels=hotels.filter(h=>h.id!==id); renderHotels();
+}
+
+// ══════════════ FOOD ══════════════
+function populateFoodCitySel(){
+  const sel=document.getElementById('f-city'); sel.innerHTML='';
+  spots.forEach(s=>{
+    const opt=document.createElement('option');
+    opt.value=s.name; opt.textContent=`${s.name}, ${s.state}`;
+    sel.appendChild(opt);
+  });
+}
+
+function openFoodForCity(cityName){
+  goTab('food',document.querySelectorAll('.tab')[3]);
+  // scroll to city group
+  setTimeout(()=>{
+    const el=document.getElementById('fcg-'+cityName.replace(/[^a-z0-9]/gi,''));
+    if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
+  },200);
+}
+
+function renderFood(){
+  const el=document.getElementById('food-list'); el.innerHTML='';
+  // group by city
+  const groups={};
+  foods.forEach(f=>{
+    if(!groups[f.city])groups[f.city]=[];
+    groups[f.city].push(f);
+  });
+  const cityOrder=spots.map(s=>s.name);
+  const sorted=Object.keys(groups).sort((a,b)=>{
+    const ia=cityOrder.indexOf(a), ib=cityOrder.indexOf(b);
+    if(ia===-1&&ib===-1)return 0;
+    if(ia===-1)return 1; if(ib===-1)return -1;
+    return ia-ib;
+  });
+  if(!sorted.length){
+    el.innerHTML=`<div class="empty"><div class="ei">🍜</div><div class="et">No restaurants saved yet</div></div>`;
+    return;
+  }
+  const dotColors=['#5A8060','#4A6055','#B8860B','#7A9485','#2E5040','#8A7060'];
+  sorted.forEach((city,ci)=>{
+    const grp=document.createElement('div');
+    grp.className='food-city-group';
+    grp.id='fcg-'+city.replace(/[^a-z0-9]/gi,'');
+    const spot=spots.find(s=>s.name===city);
+    const state=spot?spot.state:'';
+    const col=dotColors[ci%dotColors.length];
+    let inner=`<div class="fcg-hd"><div class="fcg-dot" style="background:${col}"></div><div class="fcg-name">${city}</div><div class="fcg-state">${state}</div></div>`;
+    groups[city].forEach(f=>{
+      inner+=`<div class="fcard">
+        <div class="fcard-top"><div class="fname">${f.name}</div><div class="ftag">${f.tag||''}</div></div>
+        <div class="fnote">${f.note||''}</div>
+        <div class="ficons">
+          <div class="fib" onclick="navA('${f.map||f.name}')" title="Apple Maps">
+            <svg viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+          </div>
+          <div class="fib" onclick="window.open('https://www.yelp.com/search?find_desc=${encodeURIComponent(f.name)}&find_loc=${encodeURIComponent(city)}','_blank')" title="Yelp">
+            <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <button class="fdel" onclick="delFood(${f.id})">✕</button>
+        </div>
+      </div>`;
+    });
+    inner+=`<div class="food-add-row" onclick="openMForCity('${city}')"><span style="font-size:18px;color:var(--border)">＋</span><span>Add restaurant in ${city}</span></div>`;
+    grp.innerHTML=inner;
+    el.appendChild(grp);
+  });
+}
+
+function openMForCity(city){
+  openM('m-food');
+  setTimeout(()=>{
+    const sel=document.getElementById('f-city');
+    for(let i=0;i<sel.options.length;i++){
+      if(sel.options[i].value===city){sel.selectedIndex=i;break;}
+    }
+  },50);
+}
+
+function saveFood(){
+  const name=document.getElementById('f-name').value.trim(); if(!name)return;
+  foods.push({id:fid++,city:document.getElementById('f-city').value,name,tag:document.getElementById('f-tag').value.trim(),note:document.getElementById('f-note').value.trim(),map:document.getElementById('f-map').value.trim()||name});
+  ['f-name','f-tag','f-note','f-map'].forEach(id=>document.getElementById(id).value='');
+  closeM('m-food'); renderFood();
+}
+
+function delFood(id){
+  if(!confirm('Remove this restaurant?'))return;
+  foods=foods.filter(f=>f.id!==id); renderFood();
+}
+
+// ══════════════ EXPENSES ══════════════
+function initDate(){document.getElementById('e-date').value=new Date().toISOString().split('T')[0];}
+
+function addExp(){
+  const desc=document.getElementById('e-desc').value.trim();
+  const amt=parseFloat(document.getElementById('e-amt').value);
+  const dv=document.getElementById('e-date').value;
+  if(!desc||isNaN(amt)||amt<=0)return;
+  const d=dv?new Date(dv):new Date();
+  const ds=d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  const cat=guessCAT(desc);
+  expenses.unshift({id:eid++,desc,amt,dateStr:ds,dateVal:dv||new Date().toISOString().split('T')[0],cat});
+  document.getElementById('e-desc').value='';
+  document.getElementById('e-amt').value='';
+  initDate(); renderExp(); renderHomeStats();
+}
+
+function delExp(id){expenses=expenses.filter(e=>e.id!==id);renderExp();renderHomeStats();}
+
+function renderExp(){renderPie();renderTL();}
+
+function renderPie(){
+  const el=document.getElementById('pie-wrap');
+  if(!expenses.length){el.innerHTML=`<div class="empty"><div class="ei">🌵</div><div class="et">No expenses yet</div></div>`;return;}
+  const totals={};let grand=0;
+  expenses.forEach(e=>{totals[e.cat]=(totals[e.cat]||0)+e.amt;grand+=e.amt;});
+  const sorted=Object.entries(totals).sort((a,b)=>b[1]-a[1]);
+  const sz=130,cx=sz/2,cy=sz/2,r=48,gap=2.5;
+  let paths='',angle=-Math.PI/2;
+  sorted.forEach(([cat,amt])=>{
+    const pct=amt/grand,a=pct*2*Math.PI,ea=angle+a-(gap*Math.PI/180);
+    const x1=cx+r*Math.cos(angle),y1=cy+r*Math.sin(angle),x2=cx+r*Math.cos(ea),y2=cy+r*Math.sin(ea);
+    const lf=a>Math.PI?1:0,c=CATS[cat]||'#9E8F7F';
+    if(pct>0.005)paths+=`<path d="M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${lf} 1 ${x2},${y2} Z" fill="${c}"/>`;
+    angle+=pct*2*Math.PI;
+  });
+  const legend=sorted.map(([cat,amt])=>`<div class="pie-i"><div class="pie-d" style="background:${CATS[cat]||'#9E8F7F'}"></div><div class="pie-n">${cat}</div><div class="pie-a">$${amt.toFixed(0)}</div></div>`).join('');
+  el.innerHTML=`<div class="pie-lay"><svg width="${sz}" height="${sz}" viewBox="0 0 ${sz} ${sz}" style="flex-shrink:0">${paths}<circle cx="${cx}" cy="${cy}" r="28" fill="white"/><text x="${cx}" y="${cy-3}" text-anchor="middle" font-size="8" fill="#7A9485" font-family="PingFang SC,sans-serif">Total</text><text x="${cx}" y="${cy+12}" text-anchor="middle" font-size="12" font-weight="700" fill="#1E2D24" font-family="PingFang SC,sans-serif">$${grand.toFixed(0)}</text></svg><div class="pie-leg">${legend}</div></div><div class="pie-tot"><div class="pie-tot-l">Total spent</div><div class="pie-tot-n">$${grand.toFixed(2)}</div></div>`;
+}
+
+function renderTL(){
+  const el=document.getElementById('tl-wrap');
+  if(!expenses.length){el.innerHTML=`<div class="empty"><div class="ei">📋</div><div class="et">Entries appear here</div></div>`;return;}
+  el.innerHTML=expenses.map(e=>`<div class="tli"><div class="tl-lt"><div class="tl-dt">${e.dateStr}</div><div class="tl-dot" style="background:${CATS[e.cat]||'#9E8F7F'}"></div></div><div class="tl-md"><div class="tl-desc">${e.desc}</div><div class="tl-cat">${e.cat}</div></div><div class="tl-rt"><div class="tl-amt">$${e.amt.toFixed(2)}</div><button class="tl-del" onclick="delExp(${e.id})">✕</button></div></div>`).join('');
+}
+
+// ══════════════ INIT ══════════════
+renderSpots();
+renderHotels();
+renderFood();
+renderExp();
+renderHomeStats();
+initDate();
+</script>
+</body>
+</html>
