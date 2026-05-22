@@ -352,6 +352,53 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:"DM Sans"
 .ticket-name{font-size:17px}
 /* ── SECTION DIVIDERS - subtle green tint ── */
 .hsec,.hcg-hd{border-bottom:.5px solid var(--border)}
+
+/* ── SPOT CARDS ENHANCED ── */
+.hcard{flex-shrink:0;width:158px;background:var(--card);border-radius:18px;border:1px solid var(--border);overflow:hidden;cursor:pointer;transition:transform .15s,box-shadow .15s}
+.hcard:active{transform:scale(.95)}
+.hcard-img{height:100px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.hcard-img svg{width:46px;height:46px;stroke:var(--deep);stroke-width:1.3;fill:none;stroke-linecap:round;stroke-linejoin:round;opacity:.45}
+.hcard-img img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.hcard-img-overlay{position:absolute;inset:0;background:rgba(26,46,26,.18);display:flex;align-items:flex-end;justify-content:flex-end;padding:6px;opacity:0;transition:opacity .2s}
+.hcard:active .hcard-img-overlay{opacity:1}
+.hcard-body{padding:10px 12px 12px}
+.hcard-name{font-size:13px;font-weight:700;color:var(--deep);margin-bottom:1px;font-family:"DM Sans",sans-serif}
+.hcard-state{font-size:11px;color:var(--soft);margin-bottom:6px}
+.hcard-dates{font-size:11px;font-weight:600;color:var(--accent);margin-bottom:5px}
+.hcard-badge{display:inline-block;background:var(--bg);border-radius:20px;padding:2px 9px;font-size:10px;font-weight:600;color:var(--mid)}
+
+/* ── DATE PICKER STRIP ── */
+.date-strip{margin:0 16px 12px;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:11px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.date-strip-label{font-size:11px;font-weight:700;color:var(--soft);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+.date-strip-val{font-family:'Playfair Display',serif;font-size:15px;font-weight:600;color:var(--deep)}
+.date-strip-input{position:absolute;opacity:0;width:100%;height:100%;top:0;left:0;cursor:pointer}
+.date-strip-right{position:relative;display:flex;align-items:center;gap:6px}
+.date-strip-edit{font-size:11px;font-weight:600;color:var(--accent);cursor:pointer}
+
+/* ── SPOT DETAIL SHEET ── */
+.spot-sheet{background:var(--card)}
+.spot-sheet-hero{height:260px;position:relative;overflow:hidden;background:var(--bg2);flex-shrink:0}
+.spot-sheet-hero img{width:100%;height:100%;object-fit:cover}
+.spot-sheet-hero-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+.spot-sheet-hero-placeholder svg{width:60px;height:60px;stroke:var(--soft);stroke-width:1.2;fill:none;opacity:.4;stroke-linecap:round;stroke-linejoin:round}
+.spot-sheet-hero-actions{position:absolute;top:12px;right:12px;display:flex;gap:8px}
+.ssh-btn{width:36px;height:36px;background:rgba(255,255,255,.9);border-radius:10px;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(8px)}
+.ssh-btn svg{width:16px;height:16px;stroke:var(--deep);stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.spot-sheet-close{position:absolute;top:12px;left:12px}
+.spot-sheet-body{padding:18px 20px 32px}
+.spot-sheet-dates{font-size:13px;font-weight:600;color:var(--accent);margin-bottom:6px}
+.spot-sheet-name{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--deep);margin-bottom:2px;line-height:1.1}
+.spot-sheet-state{font-size:14px;color:var(--soft);margin-bottom:20px}
+.spot-sheet-sec{margin-bottom:18px}
+.spot-sheet-sec-title{font-size:11px;font-weight:700;color:var(--soft);letter-spacing:.07em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.spot-sheet-sec-title svg{width:13px;height:13px;stroke:var(--soft);stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.ss-empty{font-size:13px;color:var(--border);padding:4px 0}
+.ss-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg);border-radius:12px;margin-bottom:6px}
+.ss-item-icon{width:32px;height:32px;border-radius:9px;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ss-item-icon svg{width:15px;height:15px;stroke:var(--mid);stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.ss-item-info{flex:1;min-width:0}
+.ss-item-name{font-size:13px;font-weight:600;color:var(--deep)}
+.ss-item-sub{font-size:11px;color:var(--soft);margin-top:1px}
 </style>
 </head>
 <body>
@@ -399,6 +446,15 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:"DM Sans"
     <div class="prog-hd"><div class="prog-lbl">Trip Progress</div><div class="prog-pct" id="h-pct">0%</div></div>
     <div class="prog-track"><div class="prog-fill" id="h-fill" style="width:0%"><div class="prog-thumb"></div></div></div>
     <div class="prog-dots" id="h-dots"></div>
+  </div>
+  <!-- Trip start date strip -->
+  <div class="date-strip" id="date-strip">
+    <div class="date-strip-label">Departure</div>
+    <div class="date-strip-right">
+      <div class="date-strip-val" id="date-strip-val">Jun 1, 2025</div>
+      <input type="date" id="trip-start-date" value="2025-06-01" onchange="updateTripDates(this.value)" style="position:absolute;opacity:0;width:120px;height:100%;right:0;top:0;cursor:pointer">
+      <div class="date-strip-edit">Change ›</div>
+    </div>
   </div>
   <div class="chips">
     <div class="chip on" onclick="hFilter('all',this)">
@@ -558,6 +614,57 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:"DM Sans"
     </div>
   </div>
 </div>
+
+<!-- ══ SPOT DETAIL PAGE ══ -->
+<div class="page screen" id="page-spot-detail">
+  <!-- Hero -->
+  <div class="spot-sheet-hero" id="ss-hero">
+    <div class="spot-sheet-hero-placeholder" id="ss-hero-placeholder">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+    </div>
+    <img id="ss-hero-img" src="" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;inset:0" alt="">
+    <!-- top bar -->
+    <div style="position:absolute;top:0;left:0;right:0;padding:52px 16px 0;display:flex;align-items:center;justify-content:space-between;z-index:2">
+      <button class="ssh-btn" onclick="closeSpotPage()" style="background:rgba(255,255,255,.92)">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <label class="ssh-btn" style="cursor:pointer;background:rgba(255,255,255,.92)">
+        <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        <input type="file" accept="image/*" style="display:none" onchange="setSpotPhoto(this)">
+      </label>
+    </div>
+  </div>
+  <div class="spot-sheet-body">
+    <div class="spot-sheet-dates" id="ss-dates"></div>
+    <div class="spot-sheet-name" id="ss-name"></div>
+    <div class="spot-sheet-state" id="ss-state"></div>
+    <!-- Hotels -->
+    <div class="spot-sheet-sec">
+      <div class="spot-sheet-sec-title">
+        <svg viewBox="0 0 24 24"><path d="M2 20v-6a2 2 0 012-2h16a2 2 0 012 2v6"/><path d="M2 10l10-7 10 7"/><rect x="10" y="14" width="4" height="6"/></svg>
+        Hotels
+      </div>
+      <div id="ss-hotels"></div>
+    </div>
+    <!-- Eats -->
+    <div class="spot-sheet-sec">
+      <div class="spot-sheet-sec-title">
+        <svg viewBox="0 0 24 24"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2"/><line x1="7" y1="2" x2="7" y2="11"/><path d="M21 15a2 2 0 00-2-2H5a2 2 0 00-2 2v3a2 2 0 002 2h14a2 2 0 002-2v-3z"/></svg>
+        Eats
+      </div>
+      <div id="ss-eats"></div>
+    </div>
+    <!-- Tickets -->
+    <div class="spot-sheet-sec">
+      <div class="spot-sheet-sec-title">
+        <svg viewBox="0 0 24 24"><path d="M2 9a1 1 0 010-2h20a1 1 0 010 2"/><path d="M2 15a1 1 0 000 2h20a1 1 0 000-2"/><rect x="2" y="7" width="20" height="10" rx="2"/></svg>
+        Tickets
+      </div>
+      <div id="ss-tickets"></div>
+    </div>
+  </div>
+</div>
+
 </div>
 
 <!-- TICKET MODAL -->
@@ -817,13 +924,39 @@ function hFilter(f,el){
   renderHScroll();
 }
 
+// ── Trip date calculations ──
+let tripStartDate = new Date('2025-06-01');
+
+function updateTripDates(val){
+  tripStartDate = new Date(val);
+  const label = tripStartDate.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  document.getElementById('date-strip-val').textContent = label;
+  renderHScroll();
+  // Save to Firebase
+  if(typeof _fbSet !== 'undefined') _fbSet('tripStartDate', val);
+}
+
+function getSpotDateRange(spotIndex){
+  // nights=0 (passing through) adds 0 days to the running date
+  let d = new Date(tripStartDate);
+  for(let i=0;i<spotIndex;i++){
+    d = new Date(d.getTime() + (spots[i].nights||0)*86400000);
+  }
+  const s = spots[spotIndex];
+  const arrive = new Date(d);
+  const fmt = (dt)=>dt.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  if(!s.nights || s.nights===0) return fmt(arrive);
+  const depart = new Date(d.getTime() + s.nights*86400000);
+  return fmt(arrive) + ' – ' + fmt(depart);
+}
+
 function renderHScroll(){
   const el=document.getElementById('h-scroll'); el.innerHTML='';
   const imgC=['c-sage','c-sand','c-slate','c-terra'];
   const icn={
-    city:`<svg viewBox="0 0 24 24" style="width:46px;height:46px;stroke:var(--deep);stroke-width:1.3;fill:none;stroke-linecap:round;stroke-linejoin:round;opacity:.45"><rect x="2" y="7" width="20" height="15"/><path d="M16 22V12h-4v10"/><path d="M2 7l10-5 10 7"/></svg>`,
-    park:`<svg viewBox="0 0 24 24" style="width:46px;height:46px;stroke:var(--deep);stroke-width:1.3;fill:none;stroke-linecap:round;stroke-linejoin:round;opacity:.45"><path d="M17 21L12 9 7 21"/><path d="M3 21l4.5-12"/><path d="M20.5 21L16 9"/><line x1="6.5" y1="15" x2="17.5" y2="15"/></svg>`,
-    desert:`<svg viewBox="0 0 24 24" style="width:46px;height:46px;stroke:var(--deep);stroke-width:1.3;fill:none;stroke-linecap:round;stroke-linejoin:round;opacity:.45"><path d="M12 2C8 10 4 13 4 17h16c0-4-4-7-8-15z"/></svg>`,
+    city:`<svg viewBox="0 0 24 24" style="width:44px;height:44px;stroke:var(--deep);stroke-width:1.3;fill:none;stroke-linecap:round;stroke-linejoin:round;opacity:.4"><rect x="2" y="7" width="20" height="15"/><path d="M16 22V12h-4v10"/><path d="M2 7l10-5 10 7"/></svg>`,
+    park:`<svg viewBox="0 0 24 24" style="width:44px;height:44px;stroke:var(--deep);stroke-width:1.3;fill:none;stroke-linecap:round;stroke-linejoin:round;opacity:.4"><path d="M17 21L12 9 7 21"/><path d="M3 21l4.5-12"/><path d="M20.5 21L16 9"/><line x1="6.5" y1="15" x2="17.5" y2="15"/></svg>`,
+    desert:`<svg viewBox="0 0 24 24" style="width:44px;height:44px;stroke:var(--deep);stroke-width:1.3;fill:none;stroke-linecap:round;stroke-linejoin:round;opacity:.4"><path d="M12 2C8 10 4 13 4 17h16c0-4-4-7-8-15z"/></svg>`,
   };
   let list=hf==='all'?spots:hf==='hotel'?[]:spots.filter(s=>s.type===hf);
   if(hf==='hotel'){
@@ -835,10 +968,26 @@ function renderHScroll(){
     });
     return;
   }
+  // Find actual indices in full spots array for date calc
+  const fullIndices = list.map(s=>spots.findIndex(x=>x.id===s.id));
   list.forEach((s,i)=>{
-    const d=document.createElement('div');d.className='hcard';
-    const nm=s.nights>0?`${s.nights} nights`:'Through';
-    d.innerHTML=`<div class="hcard-img ${imgC[i%4]}">${icn[s.type]||icn.city}</div><div class="hcard-body"><div class="hcard-name">${s.name}</div><div class="hcard-state">${s.state}</div><div class="hcard-badge">${nm}</div></div>`;
+    const realIdx = fullIndices[i];
+    const dateRange = getSpotDateRange(realIdx);
+    const photo = s.photo || '';
+    const imgContent = photo
+      ? `<img src="${photo}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0" alt="">${icn[s.type]||icn.city}`
+      : (icn[s.type]||icn.city);
+    const nm = s.nights>0?`${s.nights} night${s.nights>1?'s':''}`:'Through';
+    const d=document.createElement('div'); d.className='hcard';
+    d.innerHTML=`
+      <div class="hcard-img ${imgC[i%4]}" style="position:relative">${imgContent}</div>
+      <div class="hcard-body">
+        <div class="hcard-dates">${dateRange}</div>
+        <div class="hcard-name">${s.name}</div>
+        <div class="hcard-state">${s.state}</div>
+        <div class="hcard-badge">${nm}</div>
+      </div>`;
+    d.onclick = ()=>openSpotSheet(s, realIdx);
     el.appendChild(d);
   });
 }
@@ -1117,6 +1266,94 @@ function renderTL(){
   el.innerHTML=expenses.map(e=>`<div class="tli"><div class="tl-lt"><div class="tl-dt">${e.dateStr}</div><div class="tl-dot" style="background:${CATS[e.cat]||'#9E8F7F'}"></div></div><div class="tl-md"><div class="tl-desc">${e.desc}</div><div class="tl-cat">${e.cat}</div></div><div class="tl-rt"><div class="tl-amt">$${e.amt.toFixed(2)}</div><button class="tl-del" onclick="delExp(${e.ts||0})">✕</button></div></div>`).join('');
 }
 
+// ══════════════ SPOT DETAIL SHEET ══════════════
+let _activeSpot = null;
+
+function openSpotSheet(spot, idx){
+  _activeSpot = {spot, idx};
+  // dates
+  document.getElementById('ss-dates').textContent = getSpotDateRange(idx);
+  document.getElementById('ss-name').textContent = spot.name;
+  document.getElementById('ss-state').textContent = spot.state + (spot.nights>0?` · ${spot.nights} night${spot.nights>1?'s':''}`:'');
+  // hero photo
+  const heroImg = document.getElementById('ss-hero-img');
+  const placeholder = document.getElementById('ss-hero-placeholder');
+  if(spot.photo){ heroImg.src=spot.photo; heroImg.style.display='block'; placeholder.style.display='none'; }
+  else { heroImg.style.display='none'; placeholder.style.display='flex'; }
+  // Hotels for this city
+  const cityHotels = hotels.filter(h=>{
+    const city = h.city||'';
+    return city.toLowerCase().includes(spot.name.split('/')[0].trim().toLowerCase()) ||
+           spot.name.toLowerCase().includes(city.split(',')[0].trim().toLowerCase());
+  });
+  const ssH = document.getElementById('ss-hotels');
+  ssH.innerHTML = cityHotels.length
+    ? cityHotels.map(h=>{
+        const cin=new Date(h.checkin).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+        const cout=new Date(h.checkout).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+        return `<div class="ss-item">
+          <div class="ss-item-icon"><svg viewBox="0 0 24 24"><path d="M2 20v-6a2 2 0 012-2h16a2 2 0 012 2v6"/><path d="M2 10l10-7 10 7"/><rect x="10" y="14" width="4" height="6"/></svg></div>
+          <div class="ss-item-info"><div class="ss-item-name">${h.name}</div><div class="ss-item-sub">${cin} – ${cout}</div></div>
+        </div>`;
+      }).join('')
+    : '<div class="ss-empty">No hotels saved for this stop</div>';
+  // Eats
+  const cityFoods = foods.filter(f=>f.city===spot.name||f.city.toLowerCase().includes(spot.name.split('/')[0].trim().toLowerCase()));
+  const ssE = document.getElementById('ss-eats');
+  ssE.innerHTML = cityFoods.length
+    ? cityFoods.map(f=>`<div class="ss-item">
+        <div class="ss-item-icon"><svg viewBox="0 0 24 24"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2"/><line x1="7" y1="2" x2="7" y2="11"/></svg></div>
+        <div class="ss-item-info"><div class="ss-item-name">${f.name}</div><div class="ss-item-sub">${f.tag||''}</div></div>
+      </div>`).join('')
+    : '<div class="ss-empty">No restaurants saved yet</div>';
+  // Tickets
+  const cityTickets = tickets.filter(t=>{
+    const loc=(t.location||t.map||'').toLowerCase();
+    const nm=spot.name.split('/')[0].trim().toLowerCase();
+    return loc.includes(nm)||t.name.toLowerCase().includes(nm);
+  });
+  const ssT = document.getElementById('ss-tickets');
+  ssT.innerHTML = cityTickets.length
+    ? cityTickets.map(t=>{
+        const d=t.date?new Date(t.date).toLocaleDateString('en-US',{month:'short',day:'numeric'}):'—';
+        return `<div class="ss-item">
+          <div class="ss-item-icon"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="10" rx="2"/><path d="M2 11h20"/></svg></div>
+          <div class="ss-item-info"><div class="ss-item-name">${t.name}</div><div class="ss-item-sub">${d} · ${t.qty||1} ticket${(t.qty||1)>1?'s':''}</div></div>
+        </div>`;
+      }).join('')
+    : '<div class="ss-empty">No tickets saved yet</div>';
+  document.getElementById('spot-sheet').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+function closeSpotSheet(e){
+  if(e && e.target!==document.getElementById('spot-sheet') && !e.target.classList.contains('spot-sheet-close') && !e.target.closest('.spot-sheet-close')) return;
+  document.getElementById('spot-sheet').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+function setSpotPhoto(input){
+  const file=input.files[0]; if(!file||!_activeSpot) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const dataUrl=e.target.result;
+    // update spot photo
+    const idx=spots.findIndex(s=>s.id===_activeSpot.spot.id);
+    if(idx>=0){
+      spots[idx].photo=dataUrl;
+      _fbSet('spots',spots);
+      // update hero
+      const heroImg=document.getElementById('ss-hero-img');
+      heroImg.src=dataUrl; heroImg.style.display='block';
+      document.getElementById('ss-hero-placeholder').style.display='none';
+      renderHScroll();
+      showToast('📸 Photo saved!',1500);
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+// Load tripStartDate from Firebase
 // ══════════════ TICKETS ══════════════
 let tickets = [];
 let tid = 500;
@@ -1502,6 +1739,16 @@ _fbListen('foods', val => {
   if (!val) { foods=[]; renderFood(); return; }
   foods = Array.isArray(val) ? val.filter(Boolean) : Object.values(val);
   renderFood();
+});
+
+// TRIP START DATE
+_fbListen('tripStartDate', val => {
+  if(val){
+    tripStartDate = new Date(val);
+    document.getElementById('trip-start-date').value = val;
+    document.getElementById('date-strip-val').textContent = tripStartDate.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    renderHScroll();
+  }
 });
 
 // TICKETS
