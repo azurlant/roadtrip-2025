@@ -6,96 +6,22 @@
 <title>Ciel's Road Trip 2025</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<!-- Firebase -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, set, onValue, push, remove, update }
-  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyDWM0CDQxsWsf_7m36Cl9JuSKHCZhiUFy8",
-  authDomain: "auzrroadtrip-2026.firebaseapp.com",
-  databaseURL: "https://auzrroadtrip-2026-default-rtdb.firebaseio.com",
-  projectId: "auzrroadtrip-2026",
-  storageBucket: "auzrroadtrip-2026.firebasestorage.app",
-  messagingSenderId: "668746988978",
-  appId: "1:668746988978:web:94b99d773d22e1ce5ff8ab"
-};
-
-const app = initializeApp(firebaseConfig);
-const db  = getDatabase(app);
-
-// ── expose DB helpers to global scope ──
-window._fbSet    = (path, val)       => set(ref(db, path), val);
-window._fbPush   = (path, val)       => push(ref(db, path), val);
-window._fbRemove = (path)            => remove(ref(db, path));
-window._fbUpdate = (path, val)       => update(ref(db, path), val);
-window._fbListen = (path, cb)        => onValue(ref(db, path), snap => cb(snap.val()));
-
-// ── seed default data if DB is empty, then start listeners ──
-window._fbListen('initialized', val => {
-  if (!val) {
-    // Write defaults once
-    window._fbSet('spots', window._defaultSpots);
-    window._fbSet('drive', window._defaultDrive);
-    window._fbSet('hotels', window._defaultHotels);
-    window._fbSet('foods', window._defaultFoods);
-    window._fbSet('initialized', true);
-  }
-});
-
-// ── SPOTS listener ──
-window._fbListen('spots', val => {
-  if (!val) return;
-  spots = Array.isArray(val) ? val.filter(Boolean) : Object.values(val);
-  renderSpots(); renderHScroll(); renderProg('r-fill','r-pct','r-dots'); renderProg('h-fill','h-pct','h-dots');
-  populateFoodCitySel();
-  if(leafMap){leafMap.remove();leafMap=null;setTimeout(initMap,120);}
-});
-
-// ── DRIVE listener ──
-window._fbListen('drive', val => {
-  if (!val) return;
-  const arr = Array.isArray(val) ? val.filter(Boolean) : Object.values(val);
-  DRIVE.length = 0; arr.forEach(v => DRIVE.push(v));
-});
-
-// ── HOTELS listener ──
-window._fbListen('hotels', val => {
-  if (!val) { hotels = []; renderHotels(); return; }
-  hotels = Array.isArray(val) ? val.filter(Boolean) : Object.values(val);
-  hotels.sort((a,b)=>new Date(a.checkin)-new Date(b.checkin));
-  renderHotels();
-});
-
-// ── FOODS listener ──
-window._fbListen('foods', val => {
-  if (!val) { foods = []; renderFood(); return; }
-  foods = Array.isArray(val) ? val.filter(Boolean) : Object.values(val);
-  renderFood();
-});
-
-// ── EXPENSES listener ──
-window._fbListen('expenses', val => {
-  if (!val) { expenses = []; renderExp(); renderHomeStats(); return; }
-  expenses = Array.isArray(val) ? val.filter(Boolean) : Object.values(val);
-  expenses.sort((a,b)=>new Date(b.dateVal)-new Date(a.dateVal));
-  renderExp(); renderHomeStats();
-});
-</script>
+<!-- Firebase SDKs (compat mode - no module needed, works with regular scripts) -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap');
 :root{
-  --bg:#F5F0E8;--bg2:#EDE7DA;--card:#FFFDF8;
-  --deep:#2A2420;--mid:#6B5E50;--soft:#A09080;
-  --border:#E2D8C8;--accent:#E8A020;
-  --amber:#E8A020;--amber-lt:#FDF0D0;
-  --warm:#D4875A;
-  --sage:#6B8060;--sage-lt:#D0DDC8;
+  --bg:#C8D5C0;--bg2:#B8C9B0;--card:#FFFFFF;
+  --deep:#1A2E1A;--mid:#3D5C3D;--soft:#7A9478;
+  --border:#D0DEC8;--accent:#E8541A;
+  --amber:#E8541A;--amber-lt:#FDEEE8;
+  --warm:#E8541A;
+  --sage:#4A7A5A;--sage-lt:#C8DEC0;
   --tab-h:72px;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;overflow:hidden;background:var(--bg);font-family:"PingFang SC","SF Pro Text",-apple-system,sans-serif;color:var(--deep);font-size:15px}
+html,body{height:100%;overflow:hidden;background:var(--bg);font-family:"DM Sans","PingFang SC",-apple-system,sans-serif;color:var(--deep);font-size:15px}
 .app{display:flex;flex-direction:column;height:100vh;height:100dvh}
 .screen{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:calc(var(--tab-h) + env(safe-area-inset-bottom,0px) + 10px)}
 .screen::-webkit-scrollbar{display:none}
@@ -108,23 +34,23 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:"PingFang
 .tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;padding:6px 2px 0;border-radius:20px;transition:background .2s}
 .ti{width:22px;height:22px;display:flex;align-items:center;justify-content:center}
 .ti svg{width:22px;height:22px;stroke:var(--soft);stroke-width:1.7;fill:none;stroke-linecap:round;stroke-linejoin:round;transition:stroke .2s}
-.tl{font-size:10px;font-weight:500;color:var(--soft);transition:color .2s;letter-spacing:.01em}
+.tl{font-size:10px;font-weight:600;color:var(--soft);transition:color .2s;letter-spacing:.03em;text-transform:uppercase;font-family:"DM Sans",sans-serif}
 .tdot{width:4px;height:4px;border-radius:50%;background:transparent;transition:background .2s}
 .tab.active .ti svg{stroke:var(--deep)}
 .tab.active .tl{color:var(--deep);font-weight:700}
 .tab.active .tdot{background:var(--deep)}
 /* center home button */
 .tab-home-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;margin-top:-24px;gap:4px}
-.tab-home-btn{width:54px;height:54px;border-radius:50%;background:var(--amber);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(232,160,32,.4);transition:transform .15s,box-shadow .15s;border:3px solid var(--card)}
+.tab-home-btn{width:54px;height:54px;border-radius:50%;background:var(--deep);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(26,46,26,.35);transition:transform .15s,box-shadow .15s;border:3px solid var(--card)}
 .tab-home-btn:active{transform:scale(.93);box-shadow:0 2px 8px rgba(232,160,32,.3)}
 .tab-home-btn svg{width:24px;height:24px;stroke:white;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
-.tab-home-lbl{font-size:10px;font-weight:600;color:var(--deep);letter-spacing:.01em}
+.tab-home-lbl{font-size:10px;font-weight:700;color:var(--deep);letter-spacing:.03em;text-transform:uppercase;font-family:"DM Sans",sans-serif}
 .tab-home-wrap.active .tab-home-lbl{color:var(--amber)}
 
 /* ── SHARED HEADER ── */
 .ph{padding:50px 20px 12px;display:flex;align-items:flex-end;justify-content:space-between;position:sticky;top:0;z-index:10;background:var(--bg)}
-.ph-t{font-family:'Fraunces',serif;font-size:28px;font-weight:300;line-height:1}
-.ph-t em{font-style:italic;color:var(--amber)}
+.ph-t{font-family:'Playfair Display',serif;font-size:28px;font-weight:300;line-height:1}
+.ph-t em{font-style:italic;color:var(--accent)}
 .ph-s{font-size:12px;color:var(--soft);margin-top:4px}
 .ph-btn{background:var(--deep);color:#fff;border:none;border-radius:20px;padding:9px 16px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;transition:opacity .2s,transform .15s;white-space:nowrap}
 .ph-btn:active{opacity:.75;transform:scale(.96)}
@@ -140,38 +66,38 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:"PingFang
 .hh-bell{width:42px;height:42px;background:var(--card);border-radius:14px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;position:relative}
 .hh-bell svg{width:20px;height:20px;stroke:var(--deep);stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
 .bdot{position:absolute;top:9px;right:9px;width:7px;height:7px;border-radius:50%;background:var(--warm);border:1.5px solid var(--bg)}
-.hh-av{width:42px;height:42px;border-radius:14px;background:var(--deep);display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:17px;font-style:italic;color:var(--bg)}
+.hh-av{width:42px;height:42px;border-radius:14px;background:var(--deep);display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:16px;font-style:italic;color:#C8D5C0}
 .greeting{padding:2px 20px 18px}
-.g-sm{font-size:13px;color:var(--soft);margin-bottom:6px}
-.g-big{font-family:'Fraunces',serif;font-size:32px;font-weight:400;line-height:1.1;letter-spacing:-.5px}
-.g-big em{font-style:italic;color:var(--amber)}
+.g-sm{font-size:13px;color:var(--mid);margin-bottom:6px;font-weight:500;letter-spacing:.02em}
+.g-big{font-family:'Playfair Display',serif;font-size:32px;font-weight:400;line-height:1.1;letter-spacing:-.5px}
+.g-big em{font-style:italic;color:var(--accent)}
 
 /* trip banner */
-.banner{margin:0 16px 14px;background:#2A2018;border-radius:22px;padding:18px 20px;position:relative;overflow:hidden}
-.banner-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 80% 20%,rgba(232,160,32,.25) 0%,transparent 55%),radial-gradient(ellipse at 15% 80%,rgba(212,135,90,.2) 0%,transparent 50%)}
+.banner{margin:0 16px 14px;background:#1A2E1A;border-radius:22px;padding:18px 20px;position:relative;overflow:hidden}
+.banner-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 80% 20%,rgba(74,122,90,.45) 0%,transparent 55%),radial-gradient(ellipse at 15% 80%,rgba(232,84,26,.15) 0%,transparent 50%)}
 .b-label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:7px}
-.b-title{font-family:'Fraunces',serif;font-size:21px;font-weight:400;color:#fff;margin-bottom:3px}
-.b-title em{font-style:italic;color:#F5D878}
+.b-title{font-family:'Playfair Display',serif;font-size:21px;font-weight:400;color:#fff;margin-bottom:3px}
+.b-title em{font-style:italic;color:#A8D8A8}
 .b-sub{font-size:12px;color:rgba(255,255,255,.5);margin-bottom:16px}
 .b-stats{display:flex}
 .bst{flex:1;border-right:1px solid rgba(255,255,255,.1);padding-right:12px;margin-right:12px}
 .bst:last-child{border:none;margin:0;padding:0}
-.bst-n{font-family:'Fraunces',serif;font-size:22px;font-weight:300;color:#fff}
+.bst-n{font-family:'Playfair Display',serif;font-size:22px;font-weight:300;color:#fff}
 .bst-l{font-size:10px;color:rgba(255,255,255,.4);margin-top:1px}
 
 /* progress */
 .prog{margin:0 16px 14px;background:var(--card);border:1px solid var(--border);border-radius:18px;padding:15px}
 .prog-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:11px}
 .prog-lbl{font-size:11px;font-weight:600;color:var(--soft);letter-spacing:.06em;text-transform:uppercase}
-.prog-pct{font-size:13px;font-weight:700;color:var(--amber);font-family:'Fraunces',serif}
+.prog-pct{font-size:13px;font-weight:700;color:var(--sage);font-family:'DM Sans',sans-serif}
 .prog-track{height:6px;background:var(--bg2);border-radius:3px;margin-bottom:11px;position:relative}
-.prog-fill{height:100%;background:linear-gradient(90deg,#F5D878,var(--amber));border-radius:3px;position:relative;transition:width .8s cubic-bezier(.34,1.56,.64,1)}
-.prog-thumb{position:absolute;right:-5px;top:50%;transform:translateY(-50%);width:12px;height:12px;border-radius:50%;background:var(--card);border:2.5px solid var(--amber)}
+.prog-fill{height:100%;background:linear-gradient(90deg,#8FBA8F,var(--sage));border-radius:3px;position:relative;transition:width .8s cubic-bezier(.34,1.56,.64,1)}
+.prog-thumb{position:absolute;right:-5px;top:50%;transform:translateY(-50%);width:12px;height:12px;border-radius:50%;background:var(--card);border:2.5px solid var(--sage)}
 .prog-dots{display:flex;justify-content:space-between}
 .pdot{display:flex;flex-direction:column;align-items:center;gap:4px}
 .pdot-c{width:8px;height:8px;border-radius:50%;background:var(--border);transition:background .3s,transform .2s}
 .pdot.reached .pdot-c{background:var(--sage-lt)}
-.pdot.current .pdot-c{background:var(--amber);transform:scale(1.5);box-shadow:0 0 0 3px rgba(232,160,32,.25)}
+.pdot.current .pdot-c{background:var(--accent);transform:scale(1.5);box-shadow:0 0 0 3px rgba(232,84,26,.2)}
 .pdot-n{font-size:8px;color:var(--soft);max-width:34px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* chips */
@@ -179,11 +105,11 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:"PingFang
 .chips::-webkit-scrollbar{display:none}
 .chip{flex-shrink:0;padding:8px 15px;border-radius:20px;font-size:13px;font-weight:500;cursor:pointer;background:var(--card);border:1px solid var(--border);color:var(--mid);display:flex;align-items:center;gap:5px;transition:all .2s}
 .chip svg{width:13px;height:13px;stroke:currentColor;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
-.chip.on{background:var(--amber);border-color:var(--amber);color:#fff}
+.chip.on{background:var(--deep);border-color:var(--deep);color:#fff}
 
 /* sec */
 .sec{display:flex;align-items:center;justify-content:space-between;padding:0 20px 9px}
-.sec-t{font-size:11px;font-weight:600;color:var(--soft);letter-spacing:.06em;text-transform:uppercase}
+.sec-t{font-size:11px;font-weight:700;color:var(--soft);letter-spacing:.07em;text-transform:uppercase;font-family:"DM Sans",sans-serif}
 
 /* home scroll cards */
 .hscroll{display:flex;gap:10px;padding:0 16px 14px;overflow-x:auto;scrollbar-width:none}
@@ -201,7 +127,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:"PingFang
 /* qstats */
 .qstats{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 16px 8px}
 .qstat{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:13px}
-.qstat-n{font-family:'Fraunces',serif;font-size:24px;font-weight:300;color:var(--deep)}
+.qstat-n{font-family:'Playfair Display',serif;font-size:24px;font-weight:300;color:var(--deep)}
 .qstat-l{font-size:11px;color:var(--soft);margin-top:3px}
 
 /* ── ROUTE ── */
@@ -209,7 +135,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:"PingFang
 .map-hd{padding:11px 15px 9px;background:var(--card);display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--border)}
 .map-hd svg{width:13px;height:13px;stroke:var(--soft);stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
 .map-hd span{font-size:11px;font-weight:600;color:var(--soft);letter-spacing:.06em;text-transform:uppercase}
-#route-map{height:280px;width:100%}
+#route-map{height:280px;width:100%;transition:height .2s}
 
 /* spot rows */
 .srow{margin:0 16px 7px;background:var(--card);border:1px solid var(--border);border-radius:15px;padding:12px 13px;display:flex;align-items:flex-start;gap:11px;position:relative;transition:transform .15s}
@@ -237,12 +163,12 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:"PingFang
 .hsdot{width:6px;height:6px;border-radius:50%}
 .hcard2{margin:0 16px 9px;background:var(--card);border:1px solid var(--border);border-radius:17px;overflow:hidden;transition:transform .15s}
 .hcard2.past{opacity:.55}
-.hcard2.tonight{border-color:var(--sage)}
+.hcard2.tonight{border-color:var(--accent)}
 .htop{padding:13px 13px 0;display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
 .hbadge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap;letter-spacing:.03em;flex-shrink:0}
-.hb-up{background:var(--bg);color:var(--mid)}.hb-now{background:#FDF0D0;color:var(--amber)}.hb-past{background:var(--bg2);color:var(--soft)}
+.hb-up{background:var(--bg);color:var(--mid)}.hb-now{background:#FDEEE8;color:var(--accent)}.hb-past{background:var(--bg2);color:var(--soft)}
 .hdates{font-size:11px;color:var(--soft);font-weight:500;margin-bottom:4px}
-.hname{font-family:'Fraunces',serif;font-size:19px;font-weight:400;line-height:1.2;color:var(--deep)}
+.hname{font-family:'Playfair Display',serif;font-size:19px;font-weight:400;line-height:1.2;color:var(--deep)}
 .hcity{font-size:13px;color:var(--soft);margin-top:2px;padding-bottom:10px}
 .hconf{font-size:12px;color:var(--soft);padding:0 13px 9px}
 .hbtns{display:flex;border-top:1px solid var(--border)}
@@ -256,7 +182,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:"PingFang
 .food-city-group{margin:0 16px 18px}
 .fcg-hd{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-top:4px}
 .fcg-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-.fcg-name{font-family:'Fraunces',serif;font-size:18px;font-weight:400;color:var(--deep)}
+.fcg-name{font-family:'Playfair Display',serif;font-size:18px;font-weight:400;color:var(--deep)}
 .fcg-state{font-size:12px;color:var(--soft);margin-left:2px}
 .fcard{background:var(--card);border:1px solid var(--border);border-radius:15px;padding:13px;margin-bottom:8px;transition:transform .15s}
 .fcard:active{transform:scale(.985)}
@@ -272,11 +198,11 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:"PingFang
 .fdel:active{color:var(--accent)}
 .food-add-row{border:1.5px dashed var(--border);border-radius:14px;padding:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;color:var(--soft);font-size:13px;font-weight:500;transition:border-color .2s,color .2s}
 .food-add-row:active{border-color:var(--amber);color:var(--amber)}
-.food-city-sel{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:11px 13px;font-size:15px;font-family:inherit;color:var(--deep);outline:none;-webkit-appearance:none;margin-bottom:14px}
+.food-city-sel{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:11px 13px;font-size:15px;font-family:"DM Sans","PingFang SC",sans-serif;color:var(--deep);outline:none;-webkit-appearance:none;margin-bottom:14px}
 
 /* ── EXPENSES ── */
 .exp-card{margin:4px 16px 12px;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:17px}
-.exp-ct{font-family:'Fraunces',serif;font-size:20px;font-weight:300;color:var(--deep);margin-bottom:15px}
+.exp-ct{font-family:'Playfair Display',serif;font-size:20px;font-weight:300;color:var(--deep);margin-bottom:15px}
 .field{margin-bottom:11px}
 .fl{font-size:10px;font-weight:700;color:var(--soft);letter-spacing:.07em;text-transform:uppercase;margin-bottom:5px;display:block}
 .fi{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:11px;padding:11px 13px;font-size:15px;font-family:inherit;color:var(--deep);outline:none;transition:border-color .2s;-webkit-appearance:none}
@@ -287,7 +213,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:"PingFang
 .btn-rec{width:100%;margin-top:13px;background:var(--deep);color:#fff;border:none;border-radius:13px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:opacity .2s,transform .15s}
 .btn-rec:active{opacity:.8;transform:scale(.98)}
 .pie-card{margin:0 16px 12px;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:17px}
-.pie-t{font-family:'Fraunces',serif;font-size:20px;font-weight:300;color:var(--deep);margin-bottom:15px}
+.pie-t{font-family:'Playfair Display',serif;font-size:20px;font-weight:300;color:var(--deep);margin-bottom:15px}
 .pie-lay{display:flex;gap:14px;align-items:center}
 .pie-leg{flex:1;display:flex;flex-direction:column;gap:9px}
 .pie-i{display:flex;align-items:center;gap:7px}
@@ -296,7 +222,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:"PingFang
 .pie-a{font-size:13px;font-weight:600;color:var(--deep)}
 .pie-tot{margin-top:13px;padding-top:11px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:baseline}
 .pie-tot-l{font-size:12px;color:var(--soft)}
-.pie-tot-n{font-family:'Fraunces',serif;font-size:28px;font-weight:300;color:var(--amber)}
+.pie-tot-n{font-family:'Playfair Display',serif;font-size:28px;font-weight:300;color:var(--amber)}
 .tl-card{margin:0 16px 0;background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden}
 .tli{display:flex;align-items:center;gap:11px;padding:12px 13px;border-bottom:1px solid var(--border)}
 .tli:last-child{border-bottom:none}
@@ -307,7 +233,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:"PingFang
 .tl-desc{font-size:14px;font-weight:500;color:var(--deep)}
 .tl-cat{font-size:11px;color:var(--soft);margin-top:1px}
 .tl-rt{display:flex;align-items:center;gap:7px;flex-shrink:0}
-.tl-amt{font-family:'Fraunces',serif;font-size:16px;font-weight:400;color:var(--amber)}
+.tl-amt{font-family:'Playfair Display',serif;font-size:16px;font-weight:400;color:var(--amber)}
 .tl-del{background:none;border:none;cursor:pointer;padding:4px;color:var(--border);font-size:14px;transition:color .15s}
 .tl-del:active{color:var(--accent)}
 
@@ -324,12 +250,12 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:"PingFang
 .modal::-webkit-scrollbar{display:none}
 @keyframes su{from{transform:translateY(60px);opacity:0}to{transform:translateY(0);opacity:1}}
 .mhandle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px}
-.mtitle{font-family:'Fraunces',serif;font-size:24px;font-weight:300;color:var(--deep);margin-bottom:18px}
+.mtitle{font-family:'Playfair Display',serif;font-size:24px;font-weight:300;color:var(--deep);margin-bottom:18px}
 .mf{margin-bottom:13px}
 .mf label{font-size:10px;font-weight:700;color:var(--soft);letter-spacing:.07em;text-transform:uppercase;margin-bottom:5px;display:block}
 .mf input,.mf select,.mf textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:11px;padding:11px 13px;font-size:15px;font-family:inherit;color:var(--deep);outline:none;transition:border-color .2s;-webkit-appearance:none}
 .mf input:focus,.mf select:focus,.mf textarea:focus{border-color:var(--sage)}
-.btn-save{width:100%;background:var(--deep);color:#fff;border:none;border-radius:13px;padding:14px;font-size:16px;font-weight:700;font-family:inherit;cursor:pointer;margin-top:7px;transition:opacity .2s,transform .15s}
+.btn-save{width:100%;background:var(--deep);color:#fff;border:none;border-radius:13px;padding:14px;font-size:16px;font-weight:600;font-family:inherit;cursor:pointer;margin-top:7px;transition:opacity .2s,transform .15s;letter-spacing:.01em}
 .btn-save:active{opacity:.8;transform:scale(.98)}
 .btn-cancel{width:100%;background:none;color:var(--soft);border:1px solid var(--border);border-radius:13px;padding:12px;font-size:15px;font-family:inherit;cursor:pointer;margin-top:7px}
 
@@ -342,6 +268,90 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:"PingFang
 .stop-lbl{background:rgba(255,255,255,0.92);border:1px solid var(--border);border-radius:6px;padding:3px 7px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.10);pointer-events:none;line-height:1.3}
 .stop-lbl-name{font-size:11px;font-weight:700;color:var(--deep);font-family:"PingFang SC","SF Pro Text",-apple-system,sans-serif}
 .stop-lbl-state{font-size:9px;color:var(--soft);font-family:"PingFang SC","SF Pro Text",-apple-system,sans-serif}
+
+/* ── MAP FULLSCREEN ── */
+.map-fs-btn{position:absolute;top:8px;right:8px;z-index:1000;width:32px;height:32px;background:white;border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.12)}
+.map-fs-btn svg{width:16px;height:16px;stroke:var(--deep);stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.map-fullscreen{position:fixed!important;inset:0!important;z-index:500!important;height:100vh!important;height:100dvh!important;border-radius:0!important;margin:0!important}
+#route-map.fs{height:100%!important}
+.map-wrap{position:relative}
+
+/* ── TICKET WALLET — boarding pass style ── */
+.ticket-card{margin:0 16px 16px;filter:drop-shadow(0 4px 16px rgba(26,46,26,.13))}
+.ticket-bp{background:var(--card);border-radius:20px;overflow:hidden;position:relative}
+.ticket-header{background:var(--deep);padding:14px 18px 12px;display:flex;align-items:center;justify-content:space-between}
+.ticket-header-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.5)}
+.ticket-header-date{font-family:'Playfair Display',serif;font-size:16px;font-weight:600;color:white;margin-top:2px}
+.ticket-header-right{text-align:right}
+.ticket-header-status{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 10px;border-radius:20px}
+.tks-upcoming{background:rgba(232,84,26,.2);color:#FF8A6A}
+.tks-used{background:rgba(200,220,190,.2);color:#A8D8A8}
+.ticket-body{padding:16px 18px 0}
+.ticket-main-row{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
+.ticket-place-big{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--deep);line-height:1}
+.ticket-place-sub{font-size:11px;color:var(--soft);margin-top:3px;font-weight:500}
+.ticket-arrow{display:flex;flex-direction:column;align-items:center;gap:4px;padding-top:4px}
+.ticket-arrow-line{width:50px;height:1.5px;background:linear-gradient(90deg,var(--border),var(--accent),var(--border));position:relative}
+.ticket-arrow-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);position:absolute;right:-3px;top:-2.5px}
+.ticket-arrow-icon{font-size:18px}
+.ticket-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;padding-bottom:14px}
+.ticket-field-label{font-size:10px;color:var(--soft);font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:2px}
+.ticket-field-val{font-size:14px;font-weight:600;color:var(--deep)}
+.ticket-divider{margin:0 18px;display:flex;align-items:center;gap:0;position:relative}
+.ticket-notch{width:18px;height:18px;border-radius:50%;background:var(--bg);flex-shrink:0;border:.5px solid var(--border)}
+.ticket-dash{flex:1;border-top:1.5px dashed var(--border)}
+.ticket-barcode{padding:14px 18px 16px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.ticket-barcode-img{width:100%;height:40px;background:repeating-linear-gradient(90deg,var(--deep) 0px,var(--deep) 2px,transparent 2px,transparent 4px,var(--deep) 4px,var(--deep) 5px,transparent 5px,transparent 8px,var(--deep) 8px,var(--deep) 9px,transparent 9px,transparent 13px,var(--deep) 13px,var(--deep) 15px,transparent 15px,transparent 18px,var(--deep) 18px,var(--deep) 19px,transparent 19px,transparent 23px,var(--deep) 23px,var(--deep) 25px,transparent 25px,transparent 27px,var(--deep) 27px,var(--deep) 28px,transparent 28px,transparent 32px,var(--deep) 32px,var(--deep) 34px,transparent 34px,transparent 36px);border-radius:3px;opacity:.85}
+.ticket-barcode-num{font-size:10px;letter-spacing:.12em;color:var(--soft);font-family:monospace}
+.ticket-footer{background:var(--deep);padding:12px 18px;display:flex;align-items:center;justify-content:space-between}
+.ticket-footer-btn{display:flex;align-items:center;gap:6px;background:none;border:none;cursor:pointer;font-size:13px;font-weight:600;color:rgba(255,255,255,.8);font-family:"DM Sans",sans-serif}
+.ticket-footer-btn svg{width:16px;height:16px;stroke:rgba(255,255,255,.7);stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.ticket-footer-del{background:none;border:none;cursor:pointer;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:8px}
+.ticket-footer-del svg{width:15px;height:15px;stroke:rgba(255,100,80,.8);stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round}
+/* upload zone */
+.upload-zone{margin:0 16px 16px;border:2px dashed var(--border);border-radius:18px;padding:28px 20px;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;transition:border-color .2s,background .2s;background:rgba(255,255,255,.4)}
+.upload-zone:active{border-color:var(--accent);background:var(--amber-lt)}
+.upload-zone svg{width:36px;height:36px;stroke:var(--soft);stroke-width:1.5;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.upload-zone-title{font-size:15px;font-weight:600;color:var(--deep)}
+.upload-zone-sub{font-size:12px;color:var(--soft);text-align:center}
+.upload-zone-or{font-size:11px;color:var(--soft)}
+.upload-processing{margin:0 16px 16px;background:var(--card);border:1px solid var(--border);border-radius:18px;padding:20px;text-align:center;display:none}
+.upload-processing.active{display:block}
+.upload-spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ticket-tag{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:var(--bg);color:var(--mid)}
+.ticket-actions{display:flex;gap:6px}
+.ticket-btn{background:none;border:none;width:30px;height:30px;border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.ticket-btn svg{width:14px;height:14px;stroke:var(--mid);stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.ticket-btn.danger svg{stroke:var(--accent)}
+/* legacy strip kept for home card */
+.ticket-strip{height:4px;background:linear-gradient(90deg,var(--accent),#FF7A50)}
+
+/* ── HOTELS CITY GROUP ── */
+.hotel-city-group{margin:0 16px 16px}
+.hcg-hd{display:flex;align-items:center;gap:8px;padding:12px 0 9px}
+.hcg-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.hcg-name{font-family:'Playfair Display',serif;font-size:18px;font-weight:400;color:var(--deep)}
+.hcg-state{font-size:12px;color:var(--soft)}
+.hcard2{margin:0 0 8px!important}
+
+/* ── GLOBAL CARD SHADOW ── */
+.hcard,.hcard2,.prog,.pie-card,.exp-card,.tl-card,.fcard,.ticket-inner,.qstat,.food-city-group .fcard{
+  box-shadow:0 2px 12px rgba(26,46,26,.07);
+}
+.modal{box-shadow:0 -8px 40px rgba(26,46,26,.15)}
+/* ── TABS SHADOW ── */
+.tabs-inner{box-shadow:0 -2px 20px rgba(26,46,26,.12)!important}
+/* ── ROUTE MAP ── */
+.map-wrap{box-shadow:0 2px 12px rgba(26,46,26,.08)}
+/* ── HEADING WEIGHT ── */
+.ph-t{font-weight:400}
+.b-title{font-size:20px;letter-spacing:-.3px}
+.g-big{font-size:30px}
+.hname{font-size:18px}
+.ticket-name{font-size:17px}
+/* ── SECTION DIVIDERS - subtle green tint ── */
+.hsec,.hcg-hd{border-bottom:.5px solid var(--border)}
 </style>
 </head>
 <body>
@@ -365,6 +375,17 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:"PingFang
   </div>
   <div class="banner">
     <div class="banner-bg"></div>
+    <div style="position:absolute;bottom:0;right:0;opacity:0.18;pointer-events:none">
+      <svg width="140" height="90" viewBox="0 0 140 90" fill="none">
+        <ellipse cx="110" cy="80" rx="40" ry="30" fill="#4A7A5A"/>
+        <polygon points="80,60 95,20 110,60" fill="#3D6B4A"/>
+        <polygon points="95,60 112,15 129,60" fill="#4A7A5A"/>
+        <polygon points="60,60 73,28 86,60" fill="#3D6B4A"/>
+        <rect x="98" y="50" width="14" height="12" rx="2" fill="#2A4A2A"/>
+        <rect x="103" y="45" width="4" height="5" rx="1" fill="#1A3A1A"/>
+        <circle cx="70" cy="12" rx="14" ry="14" fill="#7A9478" opacity=".5"/>
+      </svg>
+    </div>
     <div class="b-label">YOUR ROAD TRIP · 2025</div>
     <div class="b-title">Rochester <em>→</em> Irvine</div>
     <div class="b-sub">Jun 1 – Jun 22 · Across 7 States</div>
@@ -402,6 +423,18 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:"PingFang
     <div class="qstat"><div class="qstat-n" id="qs-top">—</div><div class="qstat-l">Top category</div></div>
     <div class="qstat"><div class="qstat-n" id="qs-cnt">0</div><div class="qstat-l">Entries</div></div>
   </div>
+  <!-- Ticket wallet shortcut -->
+  <div class="sec" style="padding-top:8px"><div class="sec-t">Ticket Wallet</div></div>
+  <div style="margin:0 16px 8px;background:var(--card);border:1px solid var(--border);border-radius:18px;overflow:hidden;cursor:pointer" onclick="goTickets()">
+    <div class="ticket-strip"></div>
+    <div style="padding:14px 16px;display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:400;color:var(--deep)">Park passes &amp; bookings</div>
+        <div style="font-size:12px;color:var(--soft);margin-top:3px" id="qs-tickets">No tickets saved yet</div>
+      </div>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--soft)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+  </div>
   <div style="height:8px"></div>
 </div>
 
@@ -411,12 +444,15 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:"PingFang
     <div><div class="ph-t">Ro<em>ute</em></div><div class="ph-s">Tap a stop for options</div></div>
     <button class="ph-btn" onclick="openM('m-spot')">＋ Add Stop</button>
   </div>
-  <div class="map-wrap">
+  <div class="map-wrap" id="map-wrap">
     <div class="map-hd">
       <svg viewBox="0 0 24 24"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
       <span>Live Route Map</span>
     </div>
     <div id="route-map"></div>
+    <div class="map-fs-btn" id="map-fs-btn" onclick="toggleMapFS()">
+      <svg id="map-fs-icon" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+    </div>
   </div>
   <div class="prog">
     <div class="prog-hd"><div class="prog-lbl">Trip Progress</div><div class="prog-pct" id="r-pct">0%</div></div>
@@ -472,6 +508,29 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:"PingFang
   <div style="height:8px"></div>
 </div>
 
+<!-- ══ TICKETS ══ -->
+<div class="page screen" id="page-tickets">
+  <div class="ph">
+    <div><div class="ph-t">Tic<em>kets</em></div><div class="ph-s">Park passes & bookings</div></div>
+    <button class="ph-btn" onclick="openM('m-ticket')">＋ Manual</button>
+  </div>
+  <!-- Upload zone -->
+  <div class="upload-zone" onclick="document.getElementById('ticket-img-input').click()">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+    <div class="upload-zone-title">Upload ticket screenshot</div>
+    <div class="upload-zone-sub">AI will read your ticket and auto-fill the details</div>
+    <div class="upload-zone-or">or add manually with the button above</div>
+  </div>
+  <input type="file" id="ticket-img-input" accept="image/*" style="display:none" onchange="processTicketImage(this)">
+  <div class="upload-processing" id="upload-processing">
+    <div class="upload-spinner"></div>
+    <div style="font-size:14px;font-weight:600;color:var(--deep)">Reading your ticket…</div>
+    <div style="font-size:12px;color:var(--soft);margin-top:4px">Claude AI is scanning the image</div>
+  </div>
+  <div id="tickets-list"></div>
+  <div style="height:8px"></div>
+</div>
+
 <!-- ══ TABS ══ -->
 <div class="tabs">
   <div class="tabs-inner">
@@ -501,17 +560,50 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:"PingFang
 </div>
 </div>
 
+<!-- TICKET MODAL -->
+<div class="overlay" id="m-ticket" onclick="overlayClose(event,'m-ticket')">
+  <div class="modal">
+    <div class="mhandle"></div><div class="mtitle">Add a ticket</div>
+    <div class="mf">
+      <label>Search venue / park</label>
+      <div class="search-wrap">
+        <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="search-input" id="tk-search" placeholder="e.g. Yosemite, Arches…" oninput="searchPlace(this.value,'tk-results')" autocomplete="off">
+        <div class="search-results" id="tk-results" style="display:none"></div>
+      </div>
+    </div>
+    <input type="hidden" id="tk-name"><input type="hidden" id="tk-map">
+    <div id="tk-preview" style="display:none;background:var(--bg);border-radius:10px;padding:10px 12px;margin-bottom:4px;font-size:13px;color:var(--mid)"></div>
+    <div class="mf"><label>Date of visit</label><input id="tk-date" type="date" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:11px;padding:11px 13px;font-size:15px;font-family:"DM Sans","PingFang SC",sans-serif;color:var(--deep);outline:none;-webkit-appearance:none"></div>
+    <div class="mf" style="display:flex;gap:10px">
+      <div style="flex:1"><label style="font-size:10px;font-weight:700;color:var(--soft);letter-spacing:.07em;text-transform:uppercase;margin-bottom:5px;display:block">Tickets</label><input id="tk-qty" type="number" min="1" value="2" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:11px;padding:11px 13px;font-size:15px;font-family:"DM Sans","PingFang SC",sans-serif;color:var(--deep);outline:none;-webkit-appearance:none"></div>
+      <div style="flex:1"><label style="font-size:10px;font-weight:700;color:var(--soft);letter-spacing:.07em;text-transform:uppercase;margin-bottom:5px;display:block">Price $</label><input id="tk-price" type="number" step="0.01" placeholder="0.00" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:11px;padding:11px 13px;font-size:15px;font-family:"DM Sans","PingFang SC",sans-serif;color:var(--deep);outline:none;-webkit-appearance:none"></div>
+    </div>
+    <div class="mf"><label>Confirmation # / Notes (optional)</label><input id="tk-conf" placeholder="Booking ref, reservation link…" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:11px;padding:11px 13px;font-size:15px;font-family:"DM Sans","PingFang SC",sans-serif;color:var(--deep);outline:none;-webkit-appearance:none"></div>
+    <div class="mf"><label>Booking link (optional)</label><input id="tk-url" type="url" placeholder="https://recreation.gov/…" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:11px;padding:11px 13px;font-size:15px;font-family:"DM Sans","PingFang SC",sans-serif;color:var(--deep);outline:none;-webkit-appearance:none"></div>
+    <button class="btn-save" onclick="saveTicket()">Save ticket</button>
+    <button class="btn-cancel" onclick="closeM('m-ticket')">Cancel</button>
+  </div>
+</div>
+
 <!-- SPOT MODAL -->
 <div class="overlay" id="m-spot" onclick="overlayClose(event,'m-spot')">
   <div class="modal">
     <div class="mhandle"></div><div class="mtitle">Add a stop</div>
-    <div class="mf"><label>Name</label><input id="s-name" placeholder="e.g. Yosemite National Park"></div>
-    <div class="mf"><label>State</label><input id="s-state" placeholder="e.g. California"></div>
+    <div class="mf">
+      <label>Search for a place</label>
+      <div class="search-wrap">
+        <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="search-input" id="s-search" placeholder="Search city or national park…" oninput="searchPlace(this.value,'s-results')" autocomplete="off">
+        <div class="search-results" id="s-results" style="display:none"></div>
+      </div>
+    </div>
     <div class="mf"><label>Type</label><select id="s-type"><option value="city">City</option><option value="park">National Park</option><option value="desert">Desert / Nature</option></select></div>
-    <div class="mf"><label>Nights (0 = passing through)</label><input id="s-nights" type="number" placeholder="2" min="0"></div>
-    <div class="mf"><label>Navigation keyword</label><input id="s-map" placeholder="e.g. Yosemite Valley CA"></div>
-    <div class="mf"><label>Latitude</label><input id="s-lat" type="number" step="any" placeholder="37.8651"></div>
-    <div class="mf"><label>Longitude</label><input id="s-lng" type="number" step="any" placeholder="-119.5383"></div>
+    <div class="mf"><label>Nights (0 = passing through)</label><input id="s-nights" type="number" placeholder="2" min="0" class="fi" style="background:var(--bg);border:1px solid var(--border);border-radius:11px;padding:11px 13px;font-size:15px;font-family:inherit;color:var(--deep);outline:none;width:100%;-webkit-appearance:none"></div>
+    <!-- Hidden fields auto-filled by search -->
+    <input type="hidden" id="s-name"><input type="hidden" id="s-state">
+    <input type="hidden" id="s-map"><input type="hidden" id="s-lat"><input type="hidden" id="s-lng">
+    <div id="s-preview" style="display:none;background:var(--bg);border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:13px;color:var(--mid)"></div>
     <button class="btn-save" onclick="saveSpot()">Add stop</button>
     <button class="btn-cancel" onclick="closeM('m-spot')">Cancel</button>
   </div>
@@ -521,13 +613,21 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:"PingFang
 <div class="overlay" id="m-hotel" onclick="overlayClose(event,'m-hotel')">
   <div class="modal">
     <div class="mhandle"></div><div class="mtitle">Add a hotel</div>
-    <div class="mf"><label>Hotel name</label><input id="h-name" placeholder="e.g. Hilton Garden Inn Moab"></div>
-    <div class="mf"><label>City</label><input id="h-city" placeholder="e.g. Moab, UT"></div>
-    <div class="mf"><label>Check-in</label><input id="h-in" type="date"></div>
-    <div class="mf"><label>Check-out</label><input id="h-out" type="date"></div>
-    <div class="mf"><label>Confirmation / Notes</label><input id="h-conf" placeholder="Booking ref, phone…"></div>
-    <div class="mf"><label>Website (optional)</label><input id="h-url" type="url" placeholder="https://"></div>
-    <div class="mf"><label>Navigation address</label><input id="h-map" placeholder="e.g. Hilton Garden Inn Moab Utah"></div>
+    <div class="mf">
+      <label>Search hotel name</label>
+      <div class="search-wrap">
+        <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="search-input" id="h-search" placeholder="Search hotel or lodging…" oninput="searchPlace(this.value,'h-results')" autocomplete="off">
+        <div class="search-results" id="h-results" style="display:none"></div>
+      </div>
+    </div>
+    <input type="hidden" id="h-name"><input type="hidden" id="h-map">
+    <div id="h-preview" style="display:none;background:var(--bg);border-radius:10px;padding:10px 12px;margin-bottom:4px;font-size:13px;color:var(--mid)"></div>
+    <div class="mf"><label>City</label><input id="h-city" placeholder="e.g. Moab, UT" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:11px;padding:11px 13px;font-size:15px;font-family:"DM Sans","PingFang SC",sans-serif;color:var(--deep);outline:none;-webkit-appearance:none"></div>
+    <div class="mf"><label>Check-in</label><input id="h-in" type="date" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:11px;padding:11px 13px;font-size:15px;font-family:"DM Sans","PingFang SC",sans-serif;color:var(--deep);outline:none;-webkit-appearance:none"></div>
+    <div class="mf"><label>Check-out</label><input id="h-out" type="date" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:11px;padding:11px 13px;font-size:15px;font-family:"DM Sans","PingFang SC",sans-serif;color:var(--deep);outline:none;-webkit-appearance:none"></div>
+    <div class="mf"><label>Confirmation # (optional)</label><input id="h-conf" placeholder="Booking ref, phone…" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:11px;padding:11px 13px;font-size:15px;font-family:"DM Sans","PingFang SC",sans-serif;color:var(--deep);outline:none;-webkit-appearance:none"></div>
+    <div class="mf"><label>Website (optional)</label><input id="h-url" type="url" placeholder="https://" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:11px;padding:11px 13px;font-size:15px;font-family:"DM Sans","PingFang SC",sans-serif;color:var(--deep);outline:none;-webkit-appearance:none"></div>
     <button class="btn-save" onclick="saveHotel()">Save hotel</button>
     <button class="btn-cancel" onclick="closeM('m-hotel')">Cancel</button>
   </div>
@@ -538,12 +638,20 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:"PingFang
   <div class="modal">
     <div class="mhandle"></div><div class="mtitle">Save a restaurant</div>
     <div class="mf"><label>City</label>
-      <select class="food-city-sel" id="f-city"></select>
+      <select class="food-city-sel" id="f-city" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:11px;padding:11px 13px;font-size:15px;font-family:"DM Sans","PingFang SC",sans-serif;color:var(--deep);outline:none;-webkit-appearance:none;margin-bottom:0"></select>
     </div>
-    <div class="mf"><label>Restaurant name</label><input id="f-name" placeholder="e.g. Lou Malnati's"></div>
-    <div class="mf"><label>Cuisine / tag</label><input id="f-tag" placeholder="e.g. Deep dish pizza"></div>
-    <div class="mf"><label>Notes (hours, must-order…)</label><textarea id="f-note" rows="3" placeholder="e.g. Butter crust is a must, open till 11pm"></textarea></div>
-    <div class="mf"><label>Navigation address</label><input id="f-map" placeholder="e.g. Lou Malnati's Chicago"></div>
+    <div class="mf">
+      <label>Search restaurant</label>
+      <div class="search-wrap">
+        <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="search-input" id="f-search" placeholder="Search restaurant name…" oninput="searchPlace(this.value,'f-results')" autocomplete="off">
+        <div class="search-results" id="f-results" style="display:none"></div>
+      </div>
+    </div>
+    <input type="hidden" id="f-name"><input type="hidden" id="f-map">
+    <div id="f-preview" style="display:none;background:var(--bg);border-radius:10px;padding:10px 12px;margin-bottom:4px;font-size:13px;color:var(--mid)"></div>
+    <div class="mf"><label>Cuisine / tag</label><input id="f-tag" placeholder="e.g. Deep dish pizza" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:11px;padding:11px 13px;font-size:15px;font-family:"DM Sans","PingFang SC",sans-serif;color:var(--deep);outline:none;-webkit-appearance:none"></div>
+    <div class="mf"><label>Notes</label><textarea id="f-note" rows="2" placeholder="Must-order, hours, tips…" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:11px;padding:11px 13px;font-size:15px;font-family:inherit;color:var(--deep);outline:none;resize:none"></textarea></div>
     <button class="btn-save" onclick="saveFood()">Save</button>
     <button class="btn-cancel" onclick="closeM('m-food')">Cancel</button>
   </div>
@@ -554,7 +662,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:"PingFang
 const TODAY = new Date(); TODAY.setHours(0,0,0,0);
 
 // Default data — written to Firebase on first load only
-window._defaultSpots = [
+// _defaultSpots moved to init block
+const __unusedSpots = [
   {id:1,  name:'Rochester',     state:'New York',    type:'city',   nights:0, map:'Rochester NY',                         lat:43.1566, lng:-77.6088},
   {id:2,  name:'Cleveland',     state:'Ohio',        type:'city',   nights:1, map:'Cleveland OH',                         lat:41.4993, lng:-81.6944},
   {id:3,  name:'Chicago',       state:'Illinois',    type:'city',   nights:2, map:'Chicago IL',                           lat:41.8781, lng:-87.6298},
@@ -568,8 +677,8 @@ window._defaultSpots = [
   {id:11, name:'Los Angeles',   state:'California',  type:'city',   nights:2, map:'Los Angeles CA',                       lat:34.0522, lng:-118.2437},
   {id:12, name:'Irvine',        state:'California',  type:'city',   nights:0, map:'Irvine CA',                            lat:33.6846, lng:-117.8265},
 ];
-window._defaultDrive = ['3h','5h','7h','5h','4h','4h','5h','3h','4.5h','2h','1h'];
-window._defaultHotels = [
+const __unusedDrive = ['3h','5h','7h','5h','4h','4h','5h','3h','4.5h','2h','1h'];
+const __unusedHotels = [
   {id:1,name:'Marriott Cleveland Downtown',city:'Cleveland, OH',checkin:'2025-06-01',checkout:'2025-06-02',conf:'',url:'https://marriott.com',map:'Marriott Cleveland Downtown Ohio'},
   {id:2,name:'Hilton Chicago',city:'Chicago, IL',checkin:'2025-06-02',checkout:'2025-06-04',conf:'',url:'https://hilton.com',map:'Hilton Chicago Michigan Ave'},
   {id:3,name:'Marriott Omaha Downtown',city:'Omaha, NE',checkin:'2025-06-05',checkout:'2025-06-06',conf:'',url:'https://marriott.com',map:'Marriott Omaha Downtown'},
@@ -580,7 +689,7 @@ window._defaultHotels = [
   {id:8,name:'Marriott Courtyard Visalia',city:'Visalia, CA',checkin:'2025-06-17',checkout:'2025-06-19',conf:'',url:'https://marriott.com',map:'Courtyard Marriott Visalia California'},
   {id:9,name:'Le Méridien Santa Monica',city:'Santa Monica, CA',checkin:'2025-06-19',checkout:'2025-06-22',conf:'',url:'https://marriott.com',map:'Le Meridien Delfina Santa Monica'},
 ];
-window._defaultFoods = [
+const __unusedFoods = [
   {id:1,city:'Chicago',name:"Lou Malnati's",tag:'Deep dish pizza',note:"Butter crust is a must. Book ahead — gets packed.",map:"Lou Malnati's Chicago IL"},
   {id:2,city:'Chicago',name:'Garrett Popcorn',tag:'Chicago snack',note:'Get the Chicago Mix (cheese + caramel). Airport and loop locations.',map:'Garrett Popcorn Chicago IL'},
   {id:3,city:'Denver',name:'RiNo Yacht Club',tag:'Cocktails & bites',note:'Great vibe in the arts district. Good for evening drinks.',map:'RiNo Yacht Club Denver CO'},
@@ -629,9 +738,9 @@ function drawMap(){
   if(!leafMap)return;
   leafMap.eachLayer(l=>{if(!(l instanceof L.TileLayer))leafMap.removeLayer(l);});
   const ll=spots.map(s=>[s.lat,s.lng]);
-  L.polyline(ll,{color:'#D4875A',weight:3,opacity:.9,dashArray:'7,5',lineJoin:'round'}).addTo(leafMap);
+  L.polyline(ll,{color:'#4A7A5A',weight:3.5,opacity:.9,dashArray:'8,5',lineJoin:'round'}).addTo(leafMap);
   spots.forEach((s,i)=>{
-    const col=s.type==='park'?'#6B8060':s.type==='desert'?'#C49A2A':'#6B5E50';
+    const col=s.type==='park'?'#3D6B4A':s.type==='desert'?'#C49A2A':'#2A4A2A';
     const sz=i===0||i===spots.length-1?13:10;
     // alternate label above/below to reduce overlap
     const above=i%2===0;
@@ -788,8 +897,8 @@ function saveSpot(){
   const newSpot={id:sid++,name,state:document.getElementById('s-state').value.trim(),type:document.getElementById('s-type').value,nights:parseInt(document.getElementById('s-nights').value)||0,map:document.getElementById('s-map').value.trim()||name,lat:parseFloat(document.getElementById('s-lat').value)||37,lng:parseFloat(document.getElementById('s-lng').value)||-100};
   const newSpots=[...spots,newSpot];
   const newDrive=[...DRIVE,'?h'];
-  window._fbSet('spots',newSpots);
-  window._fbSet('drive',newDrive);
+  _fbSet('spots',newSpots);
+  _fbSet('drive',newDrive);
   ['s-name','s-state','s-nights','s-map','s-lat','s-lng'].forEach(id=>document.getElementById(id).value='');
   closeM('m-spot');
 }
@@ -799,19 +908,33 @@ function delSpot(id){
   const idx=spots.findIndex(s=>s.id===id);
   const newSpots=spots.filter(s=>s.id!==id);
   const newDrive=[...DRIVE]; newDrive.splice(idx,1);
-  window._fbSet('spots',newSpots);
-  window._fbSet('drive',newDrive);
+  _fbSet('spots',newSpots);
+  _fbSet('drive',newDrive);
 }
 
 // ══════════════ HOTELS ══════════════
 function renderHotels(){
   const el=document.getElementById('hotels-list');
-  const up=hotels.filter(h=>new Date(h.checkout)>=TODAY).sort((a,b)=>new Date(a.checkin)-new Date(b.checkin));
-  const past=hotels.filter(h=>new Date(h.checkout)<TODAY).sort((a,b)=>new Date(b.checkin)-new Date(a.checkin));
+  if(!hotels.length){el.innerHTML=`<div class="empty"><div class="ei">🏨</div><div class="et">No hotels saved yet</div></div>`;return;}
+  const sorted=[...hotels].sort((a,b)=>new Date(a.checkin)-new Date(b.checkin));
+  // Group by city
+  const groups={}, cityOrder=[];
+  sorted.forEach(h=>{
+    const city=h.city||'Other';
+    if(!groups[city]){groups[city]=[];cityOrder.push(city);}
+    groups[city].push(h);
+  });
+  const dotColors=['#E8A020','#6B8060','#6B5E50','#D4875A','#5A7080','#8A7060'];
   let html='';
-  if(up.length){html+=`<div class="hsec"><div class="hsdot" style="background:var(--amber)"></div>Upcoming · ${up.length}</div>`;up.forEach(h=>html+=hotelHTML(h));}
-  if(past.length){html+=`<div class="hsec" style="margin-top:14px"><div class="hsdot" style="background:var(--border)"></div>Completed</div>`;past.forEach(h=>html+=hotelHTML(h));}
-  if(!hotels.length)html=`<div class="empty"><div class="ei">🏨</div><div class="et">No hotels saved yet</div></div>`;
+  cityOrder.forEach((city,ci)=>{
+    const dot=dotColors[ci%dotColors.length];
+    const cityName=city.split(',')[0];
+    const stateName=city.includes(',')?city.split(',').slice(1).join(',').trim():'';
+    html+=`<div class="hotel-city-group">
+      <div class="hcg-hd"><div class="hcg-dot" style="background:${dot}"></div><div class="hcg-name">${cityName}</div><div class="hcg-state">${stateName}</div></div>
+      ${groups[city].map(h=>hotelHTML(h)).join('')}
+    </div>`;
+  });
   el.innerHTML=html;
 }
 
@@ -840,14 +963,14 @@ function saveHotel(){
   const ci=document.getElementById('h-in').value,co=document.getElementById('h-out').value;
   if(!name||!ci||!co){alert('Please fill in name and dates');return;}
   const newH={id:hid++,name,city:document.getElementById('h-city').value.trim(),checkin:ci,checkout:co,conf:document.getElementById('h-conf').value.trim(),url:document.getElementById('h-url').value.trim(),map:document.getElementById('h-map').value.trim()||name};
-  window._fbSet('hotels',[...hotels,newH]);
+  _fbSet('hotels',[...hotels,newH]);
   ['h-name','h-city','h-in','h-out','h-conf','h-url','h-map'].forEach(id=>document.getElementById(id).value='');
   closeM('m-hotel');
 }
 
 function delHotel(id){
   if(!confirm('Remove this hotel?'))return;
-  window._fbSet('hotels',hotels.filter(h=>h.id!==id));
+  _fbSet('hotels',hotels.filter(h=>h.id!==id));
 }
 
 // ══════════════ FOOD ══════════════
@@ -931,14 +1054,14 @@ function openMForCity(city){
 function saveFood(){
   const name=document.getElementById('f-name').value.trim(); if(!name)return;
   const newF={id:fid++,city:document.getElementById('f-city').value,name,tag:document.getElementById('f-tag').value.trim(),note:document.getElementById('f-note').value.trim(),map:document.getElementById('f-map').value.trim()||name};
-  window._fbSet('foods',[...foods,newF]);
+  _fbSet('foods',[...foods,newF]);
   ['f-name','f-tag','f-note','f-map'].forEach(id=>document.getElementById(id).value='');
   closeM('m-food');
 }
 
 function delFood(id){
   if(!confirm('Remove this restaurant?'))return;
-  window._fbSet('foods',foods.filter(f=>f.id!==id));
+  _fbSet('foods',foods.filter(f=>f.id!==id));
 }
 
 // ══════════════ EXPENSES ══════════════
@@ -952,14 +1075,20 @@ function addExp(){
   const d=dv?new Date(dv):new Date();
   const ds=d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
   const cat=guessCAT(desc);
-  const newE={id:eid++,desc,amt,dateStr:ds,dateVal:dv||new Date().toISOString().split('T')[0],cat};
-  window._fbSet('expenses',[newE,...expenses]);
+  const newE={desc,amt,dateStr:ds,dateVal:dv||new Date().toISOString().split('T')[0],cat,ts:Date.now()};
+  _fbPush('expenses', newE);
   document.getElementById('e-desc').value='';
   document.getElementById('e-amt').value='';
   initDate();
+  showToast('✅ Saved!', 1500);
 }
 
-function delExp(id){window._fbSet('expenses',expenses.filter(e=>e.id!==id));}
+function delExp(ts){
+  // Find the Firebase key for this expense by timestamp
+  _fbRef('expenses').orderByChild('ts').equalTo(ts).once('value', snap => {
+    snap.forEach(child => child.ref.remove());
+  });
+}
 
 function renderExp(){renderPie();renderTL();}
 
@@ -985,22 +1114,421 @@ function renderPie(){
 function renderTL(){
   const el=document.getElementById('tl-wrap');
   if(!expenses.length){el.innerHTML=`<div class="empty"><div class="ei">📋</div><div class="et">Entries appear here</div></div>`;return;}
-  el.innerHTML=expenses.map(e=>`<div class="tli"><div class="tl-lt"><div class="tl-dt">${e.dateStr}</div><div class="tl-dot" style="background:${CATS[e.cat]||'#9E8F7F'}"></div></div><div class="tl-md"><div class="tl-desc">${e.desc}</div><div class="tl-cat">${e.cat}</div></div><div class="tl-rt"><div class="tl-amt">$${e.amt.toFixed(2)}</div><button class="tl-del" onclick="delExp(${e.id})">✕</button></div></div>`).join('');
+  el.innerHTML=expenses.map(e=>`<div class="tli"><div class="tl-lt"><div class="tl-dt">${e.dateStr}</div><div class="tl-dot" style="background:${CATS[e.cat]||'#9E8F7F'}"></div></div><div class="tl-md"><div class="tl-desc">${e.desc}</div><div class="tl-cat">${e.cat}</div></div><div class="tl-rt"><div class="tl-amt">$${e.amt.toFixed(2)}</div><button class="tl-del" onclick="delExp(${e.ts||0})">✕</button></div></div>`).join('');
 }
 
-// ══════════════ INIT ══════════════
-// Firebase listeners will trigger renders automatically.
-// Just init date picker and show loading state.
-initDate();
-// Show sync indicator
-document.querySelectorAll('.page').forEach(p=>{
-  const sync=document.createElement('div');
-  sync.id='sync-toast';
-  sync.style.cssText='position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#2A2420;color:white;padding:8px 18px;border-radius:20px;font-size:13px;font-weight:500;z-index:999;transition:opacity .4s;pointer-events:none';
-  sync.textContent='🔄 Syncing with Firebase…';
-  document.body.appendChild(sync);
-  setTimeout(()=>{sync.style.opacity='0';setTimeout(()=>sync.remove(),400);},2500);
+// ══════════════ TICKETS ══════════════
+let tickets = [];
+let tid = 500;
+
+// ── AI ticket scanner using Claude API ──
+async function processTicketImage(input){
+  const file = input.files[0];
+  if(!file) return;
+  const proc = document.getElementById('upload-processing');
+  proc.classList.add('active');
+  input.value='';
+  try{
+    // Convert image to base64
+    const base64 = await new Promise((res,rej)=>{
+      const r = new FileReader();
+      r.onload = ()=>res(r.result.split(',')[1]);
+      r.onerror = rej;
+      r.readAsDataURL(file);
+    });
+    const mediaType = file.type || 'image/jpeg';
+    // Call Claude API
+    const resp = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':'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','anthropic-version':'2023-06-01','anthropic-dangerous-allow-browser':'true'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:800,
+        messages:[{
+          role:'user',
+          content:[
+            {type:'image',source:{type:'base64',media_type:mediaType,data:base64}},
+            {type:'text',text:`Extract ticket information from this image. Return ONLY a JSON object with these fields (use null if not found):
+{
+  "name": "venue or event name",
+  "location": "city or address",
+  "date": "YYYY-MM-DD format",
+  "time": "HH:MM format or null",
+  "price": "number only, no $ sign",
+  "qty": number of tickets,
+  "conf": "confirmation or booking number",
+  "type": "ticket type e.g. Day Pass, Adult",
+  "notes": "any other important info",
+  "url": "booking url if visible"
+}
+Return ONLY the JSON, no explanation.`}
+          ]
+        }]
+      })
+    });
+    const data = await resp.json();
+    if(data.error){throw new Error(data.error.message);}
+    const text = data.content[0].text.trim();
+    const clean = text.replace(/```json|```/g,'').trim();
+    const info = JSON.parse(clean);
+    // Build ticket
+    const t = {
+      id: tid++,
+      name: info.name || 'Unknown Ticket',
+      location: info.location || '',
+      map: info.location || '',
+      date: info.date || '',
+      time: info.time || '',
+      price: info.price || '',
+      qty: info.qty || 2,
+      conf: info.conf || '',
+      type: info.type || '',
+      notes: info.notes || '',
+      url: info.url || '',
+      ts: Date.now()
+    };
+    _fbSet('tickets',[...tickets, t]);
+    proc.classList.remove('active');
+    showToast('🎫 Ticket scanned & saved!', 2000);
+  } catch(e){
+    proc.classList.remove('active');
+    // fallback: open manual modal with what we know
+    showToast('⚠️ Could not read ticket, add manually', 2500);
+    openM('m-ticket');
+    console.error(e);
+  }
+}
+
+function goTickets(){
+  goTab('tickets', null);
+  // deactivate all tabs, activate none since tickets isn't in tab bar
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-home').classList.remove('active');
+}
+
+function renderTickets(){
+  const el=document.getElementById('tickets-list');
+  const qs=document.getElementById('qs-tickets');
+  if(qs) qs.textContent = tickets.length ? `${tickets.length} ticket${tickets.length>1?'s':''} saved` : 'No tickets saved yet';
+  if(!tickets.length){
+    el.innerHTML=`<div class="empty"><div class="ei">🎫</div><div class="et">No tickets yet<br><span style="font-size:12px;opacity:.7">Upload a screenshot or add manually</span></div></div>`;
+    return;
+  }
+  el.innerHTML = tickets.map((t,i)=>{
+    const d = t.date ? new Date(t.date).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'}) : '—';
+    const isUsed = t.date && new Date(t.date) < TODAY;
+    const statusCls = isUsed ? 'tks-used' : 'tks-upcoming';
+    const statusTxt = isUsed ? '✓ Used' : 'Upcoming';
+    const priceStr = t.price ? `$${parseFloat(t.price).toFixed(2)}` : '';
+    const conf = t.conf || '';
+    const loc = t.location || t.map || '';
+    const qty = t.qty || 2;
+    const urlBtn = t.url ? `<button class="ticket-footer-btn" onclick="window.open('${t.url}','_blank')"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>View Booking</button>` : `<div></div>`;
+    const barcodeNum = conf || `TK${String(t.id).padStart(6,'0')}`;
+    return `<div class="ticket-card">
+      <div class="ticket-bp">
+        <div class="ticket-header">
+          <div>
+            <div class="ticket-header-label">🎫 Ticket</div>
+            <div class="ticket-header-date">${d}</div>
+          </div>
+          <div class="ticket-header-right">
+            <span class="ticket-header-status ${statusCls}">${statusTxt}</span>
+          </div>
+        </div>
+        <div class="ticket-body">
+          <div class="ticket-main-row">
+            <div>
+              <div class="ticket-place-big">${t.name.length>14?t.name.slice(0,13)+'…':t.name}</div>
+              <div class="ticket-place-sub">${loc}</div>
+            </div>
+            <div style="text-align:right">
+              ${priceStr?`<div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--accent)">${priceStr}</div>`:''}
+              <div style="font-size:12px;color:var(--soft);margin-top:2px">${qty} ticket${qty>1?'s':''}</div>
+            </div>
+          </div>
+          <div class="ticket-grid">
+            ${conf?`<div><div class="ticket-field-label">Confirmation</div><div class="ticket-field-val">${conf}</div></div>`:'<div></div>'}
+            ${t.time?`<div><div class="ticket-field-label">Time</div><div class="ticket-field-val">${t.time}</div></div>`:'<div></div>'}
+            ${t.type?`<div><div class="ticket-field-label">Type</div><div class="ticket-field-val">${t.type}</div></div>`:'<div></div>'}
+            ${t.notes?`<div style="grid-column:1/-1"><div class="ticket-field-label">Notes</div><div class="ticket-field-val" style="font-size:12px;font-weight:400;color:var(--mid)">${t.notes}</div></div>`:''}
+          </div>
+        </div>
+        <div class="ticket-divider"><div class="ticket-notch"></div><div class="ticket-dash"></div><div class="ticket-notch"></div></div>
+        <div class="ticket-barcode">
+          <div class="ticket-barcode-img"></div>
+          <div class="ticket-barcode-num">${barcodeNum}</div>
+        </div>
+        <div class="ticket-footer">
+          ${urlBtn}
+          <div style="display:flex;gap:8px">
+            ${t.map?`<button class="ticket-footer-btn" onclick="navA('${t.map}')"><svg viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg></button>`:''}
+            <button class="ticket-footer-del" onclick="delTicket(${t.id})"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function saveTicket(){
+  const name = document.getElementById('tk-name').value.trim();
+  if(!name){alert('Please search and select a venue first');return;}
+  const t={
+    id:tid++,
+    name,
+    map:document.getElementById('tk-map').value,
+    date:document.getElementById('tk-date').value,
+    qty:parseInt(document.getElementById('tk-qty').value)||2,
+    price:document.getElementById('tk-price').value,
+    conf:document.getElementById('tk-conf').value.trim(),
+    url:document.getElementById('tk-url').value.trim(),
+    ts:Date.now()
+  };
+  _fbSet('tickets',[...tickets,t]);
+  ['tk-name','tk-map','tk-conf','tk-url','tk-price'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('tk-search').value='';
+  document.getElementById('tk-preview').style.display='none';
+  closeM('m-ticket');
+  showToast('🎫 Ticket saved!',1500);
+}
+
+function delTicket(id){
+  if(!confirm('Remove this ticket?'))return;
+  _fbSet('tickets',tickets.filter(t=>t.id!==id));
+}
+
+// ══════════════ MAP FULLSCREEN ══════════════
+let _mapFS = false;
+function toggleMapFS(){
+  const wrap=document.getElementById('map-wrap');
+  const map=document.getElementById('route-map');
+  const icon=document.getElementById('map-fs-icon');
+  _mapFS = !_mapFS;
+  if(_mapFS){
+    wrap.classList.add('map-fullscreen');
+    map.classList.add('fs');
+    icon.innerHTML=`<path d="M8 3v3a2 2 0 01-2 2H3m18 0h-3a2 2 0 01-2-2V3m0 18v-3a2 2 0 012-2h3M3 16h3a2 2 0 012 2v3"/>`;
+    document.body.style.overflow='hidden';
+  } else {
+    wrap.classList.remove('map-fullscreen');
+    map.classList.remove('fs');
+    icon.innerHTML=`<path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/>`;
+    document.body.style.overflow='';
+  }
+  setTimeout(()=>{if(leafMap)leafMap.invalidateSize();},300);
+}
+
+// ══════════════ SEARCH (Nominatim - free, no key needed) ══════════════
+let _searchTimer = null;
+function searchPlace(query, resultsId){
+  const el = document.getElementById(resultsId);
+  if(!query || query.length < 3){ el.style.display='none'; return; }
+  el.style.display='block';
+  el.innerHTML='<div class="sr-loading">Searching…</div>';
+  clearTimeout(_searchTimer);
+  _searchTimer = setTimeout(async ()=>{
+    try{
+      const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=6&addressdetails=1`;
+      const res = await fetch(url, {headers:{'Accept-Language':'en','User-Agent':'RoadTripApp/1.0'}});
+      const data = await res.json();
+      if(!data.length){ el.innerHTML='<div class="sr-loading">No results found</div>'; return; }
+      el.innerHTML = data.map((d,i)=>{
+        const name = d.name || d.display_name.split(',')[0];
+        const addr = d.display_name;
+        const state = d.address?.state || d.address?.country || '';
+        return `<div class="sr-item" onclick="selectPlace(${i},'${resultsId}')">
+          <div class="sr-name">${name}</div>
+          <div class="sr-addr">${addr.length>60?addr.slice(0,60)+'…':addr}</div>
+        </div>`;
+      }).join('');
+      el._data = data;
+    } catch(e){
+      el.innerHTML='<div class="sr-loading">Search failed, try again</div>';
+    }
+  }, 400);
+}
+
+function selectPlace(idx, resultsId){
+  const el = document.getElementById(resultsId);
+  const d = el._data[idx];
+  const name = d.name || d.display_name.split(',')[0];
+  const state = d.address?.state || d.address?.country || '';
+  const addr = d.display_name;
+  const lat = parseFloat(d.lat);
+  const lng = parseFloat(d.lon);
+  el.style.display='none';
+
+  if(resultsId==='s-results'){
+    document.getElementById('s-search').value = name;
+    document.getElementById('s-name').value = name;
+    document.getElementById('s-state').value = state;
+    document.getElementById('s-map').value = name + (state?' '+state:'');
+    document.getElementById('s-lat').value = lat;
+    document.getElementById('s-lng').value = lng;
+    document.getElementById('s-preview').style.display='block';
+    document.getElementById('s-preview').textContent = '📍 '+addr;
+  } else if(resultsId==='h-results'){
+    document.getElementById('h-search').value = name;
+    document.getElementById('h-name').value = name;
+    document.getElementById('h-map').value = name + (state?' '+state:'');
+    if(!document.getElementById('h-city').value) document.getElementById('h-city').value = state;
+    document.getElementById('h-preview').style.display='block';
+    document.getElementById('h-preview').textContent = '📍 '+addr;
+  } else if(resultsId==='tk-results'){
+    document.getElementById('tk-search').value = name;
+    document.getElementById('tk-name').value = name;
+    document.getElementById('tk-map').value = name + (state?' '+state:'');
+    document.getElementById('tk-preview').style.display='block';
+    document.getElementById('tk-preview').textContent = '📍 '+addr;
+  } else if(resultsId==='f-results'){
+    document.getElementById('f-search').value = name;
+    document.getElementById('f-name').value = name;
+    document.getElementById('f-map').value = name + (state?' '+state:'');
+    document.getElementById('f-preview').style.display='block';
+    document.getElementById('f-preview').textContent = '📍 '+addr;
+  }
+}
+
+// Close search results when clicking outside
+document.addEventListener('click', e=>{
+  if(!e.target.closest('.search-wrap')){
+    document.querySelectorAll('.search-results').forEach(el=>el.style.display='none');
+  }
 });
+
+// ══════════════ INIT ══════════════
+initDate();
+showToast('🔄 Connecting…', 2000);
+
+// ── Firebase init (after all render functions are defined) ──
+const _fbApp = firebase.initializeApp({
+  apiKey: "AIzaSyDWM0CDQxsWsf_7m36Cl9JuSKHCZhiUFy8",
+  authDomain: "auzrroadtrip-2026.firebaseapp.com",
+  databaseURL: "https://auzrroadtrip-2026-default-rtdb.firebaseio.com",
+  projectId: "auzrroadtrip-2026",
+  storageBucket: "auzrroadtrip-2026.firebasestorage.app",
+  messagingSenderId: "668746988978",
+  appId: "1:668746988978:web:94b99d773d22e1ce5ff8ab"
+});
+const _db = firebase.database();
+
+function _fbRef(path){ return _db.ref(path); }
+function _fbSet(path, val){ return _fbRef(path).set(val); }
+function _fbPush(path, val){ return _fbRef(path).push(val); }
+function _fbRemove(path){ return _fbRef(path).remove(); }
+function _fbListen(path, cb){ _fbRef(path).on('value', snap => cb(snap.val())); }
+
+// ── Default data (seeded once if DB empty) ──
+const _defaultSpots = [
+  {id:1,name:'Rochester',state:'New York',type:'city',nights:0,map:'Rochester NY',lat:43.1566,lng:-77.6088},
+  {id:2,name:'Cleveland',state:'Ohio',type:'city',nights:1,map:'Cleveland OH',lat:41.4993,lng:-81.6944},
+  {id:3,name:'Chicago',state:'Illinois',type:'city',nights:2,map:'Chicago IL',lat:41.8781,lng:-87.6298},
+  {id:4,name:'Omaha',state:'Nebraska',type:'city',nights:1,map:'Omaha NE',lat:41.2565,lng:-95.9345},
+  {id:5,name:'Denver',state:'Colorado',type:'city',nights:2,map:'Denver CO',lat:39.7392,lng:-104.9903},
+  {id:6,name:'Moab / Arches',state:'Utah',type:'park',nights:2,map:'Arches National Park Utah',lat:38.7331,lng:-109.5925},
+  {id:7,name:'Zion',state:'Utah',type:'park',nights:2,map:'Zion National Park Utah',lat:37.2982,lng:-113.0263},
+  {id:8,name:'Yosemite',state:'California',type:'park',nights:3,map:'Yosemite Valley California',lat:37.8651,lng:-119.5383},
+  {id:9,name:'Sequoia',state:'California',type:'park',nights:2,map:'Sequoia National Park California',lat:36.4864,lng:-118.5658},
+  {id:10,name:'Joshua Tree',state:'California',type:'desert',nights:0,map:'Joshua Tree National Park California',lat:33.8734,lng:-115.9010},
+  {id:11,name:'Los Angeles',state:'California',type:'city',nights:2,map:'Los Angeles CA',lat:34.0522,lng:-118.2437},
+  {id:12,name:'Irvine',state:'California',type:'city',nights:0,map:'Irvine CA',lat:33.6846,lng:-117.8265},
+];
+const _defaultDrive = ['3h','5h','7h','5h','4h','4h','5h','3h','4.5h','2h','1h'];
+const _defaultHotels = [
+  {id:1,name:'Marriott Cleveland Downtown',city:'Cleveland, OH',checkin:'2025-06-01',checkout:'2025-06-02',conf:'',url:'https://marriott.com',map:'Marriott Cleveland Downtown Ohio'},
+  {id:2,name:'Hilton Chicago',city:'Chicago, IL',checkin:'2025-06-02',checkout:'2025-06-04',conf:'',url:'https://hilton.com',map:'Hilton Chicago Michigan Ave'},
+  {id:3,name:'Marriott Omaha Downtown',city:'Omaha, NE',checkin:'2025-06-05',checkout:'2025-06-06',conf:'',url:'https://marriott.com',map:'Marriott Omaha Downtown'},
+  {id:4,name:'Marriott Denver City Center',city:'Denver, CO',checkin:'2025-06-06',checkout:'2025-06-08',conf:'',url:'https://marriott.com',map:'Marriott Denver City Center'},
+  {id:5,name:'Hilton Garden Inn Moab',city:'Moab, UT',checkin:'2025-06-08',checkout:'2025-06-10',conf:'',url:'https://hilton.com',map:'Hilton Garden Inn Moab Utah'},
+  {id:6,name:'Desert Pearl Inn',city:'Springdale, UT',checkin:'2025-06-10',checkout:'2025-06-12',conf:'',url:'https://desertpearl.com',map:'Desert Pearl Inn Springdale Utah'},
+  {id:7,name:'Yosemite View Lodge',city:'El Portal, CA',checkin:'2025-06-14',checkout:'2025-06-17',conf:'',url:'https://yosemiteresorts.com',map:'Yosemite View Lodge El Portal CA'},
+  {id:8,name:'Marriott Courtyard Visalia',city:'Visalia, CA',checkin:'2025-06-17',checkout:'2025-06-19',conf:'',url:'https://marriott.com',map:'Courtyard Marriott Visalia California'},
+  {id:9,name:'Le Méridien Santa Monica',city:'Santa Monica, CA',checkin:'2025-06-19',checkout:'2025-06-22',conf:'',url:'https://marriott.com',map:'Le Meridien Delfina Santa Monica'},
+];
+const _defaultFoods = [
+  {id:1,city:'Chicago',name:"Lou Malnati's",tag:'Deep dish pizza',note:"Butter crust is a must.",map:"Lou Malnati's Chicago IL"},
+  {id:2,city:'Chicago',name:'Garrett Popcorn',tag:'Chicago snack',note:'Get the Chicago Mix.',map:'Garrett Popcorn Chicago IL'},
+  {id:3,city:'Denver',name:'RiNo Yacht Club',tag:'Cocktails & bites',note:'Great vibe in the arts district.',map:'RiNo Yacht Club Denver CO'},
+  {id:4,city:'Denver',name:'Work & Class',tag:'Latin American',note:'Fried chicken & grits are amazing.',map:'Work and Class Denver CO'},
+  {id:5,city:'Moab / Arches',name:'Moab Diner',tag:'American diner',note:'Classic diner, big portions, open early.',map:'Moab Diner Utah'},
+  {id:6,city:'Yosemite',name:'Village Grill Deck',tag:'Burgers & sandwiches',note:'Right in Yosemite Valley.',map:'Village Grill Yosemite Valley CA'},
+  {id:7,city:'Los Angeles',name:'Grand Central Market',tag:'Food hall',note:'Historic market downtown LA.',map:'Grand Central Market Los Angeles CA'},
+  {id:8,city:'Los Angeles',name:'In-N-Out Burger',tag:'West Coast must',note:'Animal style burger is the move.',map:'In-N-Out Burger Los Angeles CA'},
+];
+
+// ── Seed + listen ──
+_fbRef('initialized').once('value', snap => {
+  if (!snap.val()) {
+    _fbSet('spots', _defaultSpots);
+    _fbSet('drive', _defaultDrive);
+    _fbSet('hotels', _defaultHotels);
+    _fbSet('foods', _defaultFoods);
+    _fbSet('initialized', true);
+    showToast('✅ Data initialized!', 2000);
+  }
+});
+
+// SPOTS
+_fbListen('spots', val => {
+  if (!val) return;
+  spots = Array.isArray(val) ? val.filter(Boolean) : Object.values(val);
+  renderSpots();
+  renderHScroll();
+  renderProg('r-fill','r-pct','r-dots');
+  renderProg('h-fill','h-pct','h-dots');
+  populateFoodCitySel();
+  if(leafMap){leafMap.remove();leafMap=null;setTimeout(initMap,150);}
+});
+
+// DRIVE
+_fbListen('drive', val => {
+  if (!val) return;
+  const arr = Array.isArray(val) ? val.filter(Boolean) : Object.values(val);
+  DRIVE.length = 0;
+  arr.forEach(v => DRIVE.push(v));
+});
+
+// HOTELS
+_fbListen('hotels', val => {
+  if (!val) { hotels=[]; renderHotels(); return; }
+  hotels = Array.isArray(val) ? val.filter(Boolean) : Object.values(val);
+  hotels.sort((a,b) => new Date(a.checkin)-new Date(b.checkin));
+  renderHotels();
+});
+
+// FOODS
+_fbListen('foods', val => {
+  if (!val) { foods=[]; renderFood(); return; }
+  foods = Array.isArray(val) ? val.filter(Boolean) : Object.values(val);
+  renderFood();
+});
+
+// TICKETS
+_fbListen('tickets', val => {
+  if (!val) { tickets=[]; renderTickets(); return; }
+  tickets = Array.isArray(val) ? val.filter(Boolean) : Object.values(val);
+  tickets.sort((a,b) => new Date(a.date||0)-new Date(b.date||0));
+  renderTickets();
+});
+
+// EXPENSES — use Firebase push keys, not array (most reliable for concurrent edits)
+_fbListen('expenses', val => {
+  if (!val) { expenses=[]; renderExp(); renderHomeStats(); return; }
+  // val is an object of push-key -> expense
+  expenses = Object.values(val).sort((a,b) => new Date(b.dateVal)-new Date(a.dateVal));
+  renderExp();
+  renderHomeStats();
+});
+
+// ── Toast helper ──
+function showToast(msg, duration=2000){
+  const t=document.createElement('div');
+  t.style.cssText='position:fixed;top:64px;left:50%;transform:translateX(-50%);background:#2A2420;color:white;padding:8px 18px;border-radius:20px;font-size:13px;font-weight:500;z-index:9999;transition:opacity .4s;pointer-events:none;white-space:nowrap';
+  t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.remove(),400);},duration);
+}
 </script>
 </body>
 </html>
