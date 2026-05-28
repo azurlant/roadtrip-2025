@@ -13,7 +13,7 @@
 body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--td);display:flex;justify-content:center;min-height:100vh;padding:20px;}
 @media(min-width:500px){body{background:linear-gradient(135deg,#e8e4dc,#d5d0c8);padding:30px 20px;}}
 .app{width:390px;min-height:100vh;background:var(--cr);border-radius:40px;overflow:hidden;box-shadow:var(--shl),0 0 0 1px rgba(45,74,62,.08);display:flex;flex-direction:column;}
-.screen{display:none;flex-direction:column;flex:1;overflow-y:auto;padding-bottom:80px;scrollbar-width:none;}
+.screen{display:none;flex-direction:column;flex:1;overflow-y:auto;padding-bottom:90px;scrollbar-width:none;}
 .screen::-webkit-scrollbar{display:none;}
 .screen.active{display:flex;}
 .tnav{display:flex;align-items:center;justify-content:space-between;padding:20px 24px 16px;position:sticky;top:0;z-index:20;background:var(--cr);}
@@ -125,7 +125,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--td);displ
 .tdiv::before{left:-12px;}.tdiv::after{right:-12px;}
 .tbar{margin:16px;background:#fff;border-radius:12px;padding:14px;display:flex;flex-direction:column;align-items:center;gap:8px;}
 /* NAV */
-.bnav2{position:sticky;bottom:0;background:var(--gd);border-radius:28px 28px 0 0;display:flex;align-items:center;justify-content:space-around;padding:14px 8px 20px;z-index:50;}
+.bnav2{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:390px;background:var(--gd);border-radius:28px 28px 0 0;display:flex;align-items:center;justify-content:space-around;padding:14px 8px 20px;z-index:50;}
 .nitem{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:4px 18px;border-radius:16px;border:none;background:transparent;color:rgba(255,255,255,.5);font-family:"DM Sans",sans-serif;transition:all .2s;}
 .nitem.active{color:#fff;}
 .nitem.active .niico{background:rgba(255,255,255,.15);border-radius:12px;padding:6px 12px;}
@@ -405,24 +405,30 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--td);displ
   <div style="padding:0 24px 24px">
     <div style="background:var(--wh);border-radius:24px;padding:24px;box-shadow:var(--sh)">
       <div style="display:flex;justify-content:center;position:relative;margin-bottom:20px">
-        <svg width="200" height="200" viewBox="0 0 200 200"><circle cx="100" cy="100" r="70" fill="none" stroke="#E8E4DC" stroke-width="28"/></svg>
-        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center"><div style="font-size:12px;color:var(--tl)">Total</div><div style="font-size:26px;font-weight:700">$0</div></div>
+        <svg id="donut-svg" width="200" height="200" viewBox="0 0 200 200">
+          <circle cx="100" cy="100" r="70" fill="none" stroke="#E8E4DC" stroke-width="28"/>
+        </svg>
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center">
+          <div style="font-size:12px;color:var(--tl)">Total</div>
+          <div id="donut-total" style="font-size:26px;font-weight:700">$0</div>
+        </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div style="display:flex;align-items:center;gap:8px"><div style="width:10px;height:10px;border-radius:50%;background:#2C5F8A;flex-shrink:0"></div><div><div style="font-size:11px;color:var(--tl)">Lodging</div><div style="font-size:15px;font-weight:700">$0</div></div></div>
-        <div style="display:flex;align-items:center;gap:8px"><div style="width:10px;height:10px;border-radius:50%;background:#2D4A3E;flex-shrink:0"></div><div><div style="font-size:11px;color:var(--tl)">Food</div><div style="font-size:15px;font-weight:700">$0</div></div></div>
-        <div style="display:flex;align-items:center;gap:8px"><div style="width:10px;height:10px;border-radius:50%;background:#C4532A;flex-shrink:0"></div><div><div style="font-size:11px;color:var(--tl)">Fuel</div><div style="font-size:15px;font-weight:700">$0</div></div></div>
-        <div style="display:flex;align-items:center;gap:8px"><div style="width:10px;height:10px;border-radius:50%;background:#D5CEBC;flex-shrink:0"></div><div><div style="font-size:11px;color:var(--tl)">Misc</div><div style="font-size:15px;font-weight:700">$0</div></div></div>
-      </div>
+      <div id="donut-legend" style="display:grid;grid-template-columns:1fr 1fr;gap:10px"></div>
     </div>
   </div>
   <div style="padding:0 24px 6px;font-size:11px;font-weight:700;letter-spacing:1px;color:var(--tm);text-transform:uppercase">Quick Entry</div>
   <div class="qentry">
-    <div style="font-size:13px;color:var(--tm);margin-bottom:12px">What did you spend?</div>
-    <div class="amtw"><span style="font-size:18px;font-weight:500;color:var(--tl);margin-right:6px">$</span><input class="ainp" type="number" placeholder="0.00" step="0.01" min="0"></div>
-    <div style="display:flex;gap:10px">
-      <select class="catsel"><option>Food &amp; Drink</option><option>Fuel</option><option>Lodging</option><option>Fees &amp; Entry</option><option>Misc</option></select>
-      <button class="addbtn" onclick="addExpense()">Add Entry</button>
+    <div style="font-size:13px;font-weight:600;color:var(--td);margin-bottom:14px">Add Expense</div>
+    <div class="amtw" style="margin-bottom:10px">
+        <span style="font-size:18px;font-weight:500;color:var(--tl);margin-right:6px">$</span>
+        <input class="ainp" id="exp-amount" type="number" placeholder="0.00" step="0.01" min="0">
+      </div>
+    <input class="modal-input" id="exp-desc" placeholder="* Description (e.g. Lunch)" style="margin-bottom:10px;border:1.5px solid transparent" required>
+    <input class="modal-input" id="exp-payer" placeholder="* Paid by (e.g. Ciel)" style="margin-bottom:10px;border:1.5px solid transparent" required>
+    <div style="display:flex;gap:10px;align-items:center">
+      <select class="catsel" id="exp-cat" style="flex:1"></select>
+      <button onclick="showCatManager()" style="width:36px;height:36px;background:var(--cr);border:1.5px solid var(--cd);border-radius:10px;cursor:pointer;font-size:16px;flex-shrink:0">&#9881;</button>
+      <button class="addbtn" onclick="addExpense()">Add</button>
     </div>
   </div>
   <div style="display:flex;justify-content:space-between;align-items:center;padding:0 24px 12px"><div style="font-size:16px;font-weight:600">Recent Expenses</div><div style="font-size:12px;color:var(--tl)">Jun 2026</div></div>
@@ -668,6 +674,22 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--td);displ
 
 
 
+
+<!-- CATEGORY MANAGER MODAL -->
+<div class="modal-overlay hidden" id="modal-cat">
+  <div class="modal-sheet">
+    <div class="modal-title">
+      <span>&#127991; Spending Categories</span>
+      <button class="modal-close" onclick="closeModal('modal-cat')">&#10005;</button>
+    </div>
+    <div id="cat-list" style="margin-bottom:16px"></div>
+    <div style="display:flex;gap:10px">
+      <input class="modal-input" id="new-cat-input" placeholder="New category name..." style="flex:1">
+      <button class="addbtn" onclick="addCategory()">Add</button>
+    </div>
+  </div>
+</div>
+
 <!-- FIREBASE SETUP MODAL -->
 <div class="modal-overlay hidden" id="modal-firebase">
   <div class="modal-sheet">
@@ -856,6 +878,7 @@ function showSyncBanner(state) {
 
 // ── PUSH data to Firebase (debounced) ──
 function syncPush(path, data) {
+  saveLocal();  // always save locally first
   if (!SYNC_ENABLED || !DB) return;
   clearTimeout(_syncDebounce[path]);
   _syncDebounce[path] = setTimeout(function() {
@@ -876,6 +899,7 @@ function pullAllData() {
     if (data.stopEats)   stopEats   = data.stopEats;
     if (data.stopData)   stopData   = data.stopData;
     if (data.expenses)   restoreExpenses(data.expenses);
+    if (data.categories) { _categories = data.categories; saveCategories(); renderCatSelect(); }
     // re-render current screen
     var cur = CURTAB;
     if (cur === "home")     renderCards("all");
@@ -911,8 +935,94 @@ function listenForChanges() {
 // ── Expenses sync helpers ──
 var _expenses = [];  // [{cat, val, time, cls, ico}, ...]
 
-function syncExpenseAdd(cat, val, cls, ico, timeStr) {
-  var entry = {cat:cat, val:val, cls:cls, ico:ico, time:timeStr, id: Date.now()};
+// ── LOCAL STORAGE PERSISTENCE (fallback when offline) ──
+function saveLocal() {
+  try {
+    localStorage.setItem("voya_stopHotels", JSON.stringify(stopHotels));
+    localStorage.setItem("voya_stopEats",   JSON.stringify(stopEats));
+    localStorage.setItem("voya_stopData",   JSON.stringify(stopData));
+    localStorage.setItem("voya_expenses",   JSON.stringify(_expenses));
+  } catch(e) {}
+}
+
+// ── SPENDING CATEGORIES ──
+var _categories = ["Food & Drink","Fuel","Lodging","Fees & Entry","Misc"];
+var _catIcons = {"Food & Drink":"&#127869;","Fuel":"&#9981;&#65039;","Lodging":"&#128716;","Fees & Entry":"&#127903;","Misc":"&#128204;"};
+
+function loadCategories() {
+  try {
+    var saved = localStorage.getItem("voya_categories");
+    if (saved) _categories = JSON.parse(saved);
+  } catch(e) {}
+  renderCatSelect();
+}
+function saveCategories() {
+  localStorage.setItem("voya_categories", JSON.stringify(_categories));
+  if (SYNC_ENABLED && DB) DB.ref("voya/categories").set(_categories);
+}
+function renderCatSelect() {
+  var sel = document.getElementById("exp-cat");
+  if (!sel) return;
+  sel.innerHTML = "";
+  _categories.forEach(function(cat) {
+    var opt = document.createElement("option");
+    opt.value = cat; opt.textContent = cat;
+    sel.appendChild(opt);
+  });
+}
+function showCatManager() {
+  renderCatList();
+  document.getElementById("modal-cat").classList.remove("hidden");
+}
+function renderCatList() {
+  var el = document.getElementById("cat-list");
+  el.innerHTML = "";
+  _categories.forEach(function(cat, i) {
+    var row = document.createElement("div");
+    row.style.cssText = "display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--cd)";
+    var ico = _catIcons[cat] || "&#127991;";
+    row.innerHTML = '<span style="font-size:18px;width:28px;text-align:center">' + ico + '</span>' +
+      '<span style="flex:1;font-size:14px;font-weight:500">' + cat + '</span>';
+    var del = document.createElement("button");
+    del.style.cssText = "width:28px;height:28px;background:#fff0ee;border:none;border-radius:50%;cursor:pointer;font-size:13px;color:var(--ru)";
+    del.innerHTML = "&#10005;";
+    del.onclick = (function(idx){ return function() {
+      _categories.splice(idx, 1);
+      saveCategories();
+      renderCatList();
+      renderCatSelect();
+    };})(i);
+    row.appendChild(del);
+    el.appendChild(row);
+  });
+}
+function addCategory() {
+  var inp = document.getElementById("new-cat-input");
+  var val = inp.value.trim();
+  if (!val || _categories.indexOf(val) >= 0) return;
+  _categories.push(val);
+  saveCategories();
+  renderCatList();
+  renderCatSelect();
+  inp.value = "";
+}
+
+function loadLocal() {
+  try {
+    var h = localStorage.getItem("voya_stopHotels");
+    var e = localStorage.getItem("voya_stopEats");
+    var d = localStorage.getItem("voya_stopData");
+    var ex = localStorage.getItem("voya_expenses");
+    if (h) stopHotels = JSON.parse(h);
+    if (e) stopEats   = JSON.parse(e);
+    if (d) stopData   = JSON.parse(d);
+    if (ex) { _expenses = JSON.parse(ex); restoreExpenses(_expenses); }
+  } catch(e) {}
+}
+
+
+function syncExpenseAdd(cat, val, cls, ico, timeStr, desc, payer) {
+  var entry = {cat:cat, val:val, cls:cls, ico:ico, time:timeStr, id: Date.now(), desc:desc||"", payer:payer||""};
   _expenses.unshift(entry);
   syncPush("expenses", _expenses);
 }
@@ -923,6 +1033,7 @@ function syncExpenseDel(id) {
 function restoreExpenses(data) {
   if (!Array.isArray(data)) return;
   _expenses = data;
+  setTimeout(updateDonut, 100);
   var lst = document.getElementById("expense-list");
   if (!lst) return;
   lst.innerHTML = "";
@@ -947,8 +1058,14 @@ function renderExpenseItem(lst, entry, prepend) {
 
   var info = document.createElement("div");
   info.style.flex = "1";
-  info.innerHTML = '<div style="font-size:14px;font-weight:600">' + entry.cat +
-    '</div><div style="font-size:11px;color:var(--tl);margin-top:2px">' + entry.cat + " &middot; " + entry.time + "</div>";
+  var dn = entry.desc || entry.cat;
+  var line2parts = [];
+  if (entry.payer) line2parts.push(entry.payer);
+  if (entry.desc) line2parts.push(entry.cat);
+  var line2 = line2parts.length ? line2parts.join(' · ') : entry.cat;
+  info.innerHTML = '<div style="font-size:14px;font-weight:600;color:var(--td)">' + dn +
+    ' <span style="font-weight:400;color:var(--tl);font-size:12px">· ' + entry.time + '</span></div>' +
+    '<div style="font-size:11px;color:var(--tl);margin-top:3px">' + line2 + "</div>";
 
   var amt = document.createElement("div");
   amt.style.cssText = "font-size:15px;font-weight:700";
@@ -1727,11 +1844,21 @@ function openRestDetail(stopId,eatIdx){
 }
 
 function addExpense(){
-  var inp=document.querySelector(".ainp"),cat=document.querySelector(".catsel").value,val=parseFloat(inp.value);
-  if(!val||val<=0)return;
+  var inp=document.getElementById("exp-amount")||document.querySelector(".ainp");
+  var catEl=document.getElementById("exp-cat");
+  var cat=catEl?catEl.value:"Misc";
+  var descEl=document.getElementById("exp-desc");
+  var payerEl=document.getElementById("exp-payer");
+  var now=new Date();
+  var timeStr=now.getHours()+":"+(now.getMinutes()<10?"0":"")+now.getMinutes();
+  var desc=descEl?descEl.value.trim():"";
+  var payer=payerEl?payerEl.value.trim():"";
+  // Validate all required fields
+  if(!val||val<=0){inp.style.boxShadow="0 0 0 2px var(--ru)";setTimeout(function(){inp.style.boxShadow="";},1500);return;}
+  if(!desc){descEl.style.border="1.5px solid var(--ru)";descEl.focus();setTimeout(function(){descEl.style.border="1.5px solid transparent";},1500);return;}
+  if(!payer){payerEl.style.border="1.5px solid var(--ru)";payerEl.focus();setTimeout(function(){payerEl.style.border="1.5px solid transparent";},1500);return;}
   var im={"Food & Drink":["&#127869;","food"],"Fuel":["&#9981;&#65039;","fuel"],"Lodging":["&#128716;","lodging"],"Fees & Entry":["&#127903;","fuel"],"Misc":["&#128204;","lodging"]};
   var p=im[cat]||["&#128204;","lodging"];
-  var now=new Date();
   var el=document.createElement("div");
   el.className="exitem";
   el.style.cssText="display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--cd);position:relative";
@@ -1742,10 +1869,17 @@ function addExpense(){
 
   var info=document.createElement("div");
   info.style.flex="1";
-  info.innerHTML='<div style="font-size:14px;font-weight:600">'+cat+'</div><div style="font-size:11px;color:var(--tl);margin-top:2px">'+cat+" &middot; "+now.getHours()+":"+(now.getMinutes()<10?"0":"")+now.getMinutes()+"</div>";
+  var _dn = desc || cat;
+  var _time = timeStr;
+  var _line2parts = [];
+  if(payer) _line2parts.push(payer);
+  if(desc) _line2parts.push(cat);  // only show cat in line2 if there's a desc in line1
+  var _line2 = _line2parts.length ? _line2parts.join(' · ') : cat;
+  info.innerHTML='<div style="font-size:14px;font-weight:600;color:var(--td)">'+_dn+' <span style="font-weight:400;color:var(--tl);font-size:12px">· '+_time+'</span></div>'+
+    '<div style="font-size:11px;color:var(--tl);margin-top:3px">'+_line2+'</div>';
 
   var amt=document.createElement("div");
-  amt.style.cssText="font-size:15px;font-weight:700";
+  amt.style.cssText="font-size:15px;font-weight:700;white-space:nowrap";
   amt.innerHTML="&minus;$"+val.toFixed(2);
 
   var delBtn=document.createElement("button");
@@ -1788,19 +1922,83 @@ function addExpense(){
       if(l&&!l.children.length){var ph2=document.createElement("div");ph2.style.cssText="text-align:center;padding:24px 0;color:var(--tl);font-size:13px";ph2.textContent="No expenses yet — start tracking!";l.appendChild(ph2);}
     },200);
   };})(entryId,el);
-  syncExpenseAdd(cat,val,p[1],p[0],now.getHours()+":"+(now.getMinutes()<10?"0":"")+now.getMinutes());
+  if(document.getElementById("exp-desc"))document.getElementById("exp-desc").value="";
+  if(document.getElementById("exp-payer"))document.getElementById("exp-payer").value="";
+  syncExpenseAdd(cat,val,p[1],p[0],now.getHours()+""+(now.getMinutes()<10?"0":"")+now.getMinutes());
+  saveLocal();
   inp.value="";
+  updateDonut();
 }
 
 
+// ── DYNAMIC DONUT CHART ──
+var _donutColors = ["#2C5F8A","#2D4A3E","#C4532A","#E8856A","#8BAF9F","#7a5a3a","#5a7a8a","#6a7a3a","#a04020","#3d5a7a"];
+
+function updateDonut() {
+  var totals = {}, grand = 0;
+  _expenses.forEach(function(e) {
+    var v = parseFloat(e.val)||0;
+    totals[e.cat] = (totals[e.cat]||0) + v;
+    grand += v;
+  });
+  var totalEl = document.getElementById("donut-total");
+  if (totalEl) totalEl.textContent = "$" + grand.toFixed(2);
+  var svg = document.getElementById("donut-svg");
+  if (!svg) return;
+  svg.querySelectorAll(".donut-arc").forEach(function(a){a.remove();});
+  var cats = Object.keys(totals);
+  var r = 70, circ = 2 * Math.PI * r;
+  if (grand > 0) {
+    var offset = 0;
+    cats.forEach(function(cat, i) {
+      var dash = (totals[cat]/grand) * circ;
+      var circle = document.createElementNS("http://www.w3.org/2000/svg","circle");
+      circle.setAttribute("cx","100"); circle.setAttribute("cy","100"); circle.setAttribute("r",r);
+      circle.setAttribute("fill","none");
+      circle.setAttribute("stroke", _donutColors[i % _donutColors.length]);
+      circle.setAttribute("stroke-width","28");
+      circle.setAttribute("stroke-dasharray", dash + " " + (circ - dash));
+      circle.setAttribute("stroke-dashoffset", circ/4 - offset);
+      circle.classList.add("donut-arc");
+      svg.appendChild(circle);
+      offset += dash;
+    });
+  }
+  var legend = document.getElementById("donut-legend");
+  if (!legend) return;
+  legend.innerHTML = "";
+  if (!cats.length) {
+    _categories.slice(0,4).forEach(function(cat, i) {
+      var item = document.createElement("div");
+      item.style.cssText = "display:flex;align-items:center;gap:8px";
+      item.innerHTML = '<div style="width:10px;height:10px;border-radius:50%;background:'+(_donutColors[i]||"#ccc")+';flex-shrink:0"></div>'+
+        '<div><div style="font-size:11px;color:var(--tl)">'+cat+'</div><div style="font-size:15px;font-weight:700">$0.00</div></div>';
+      legend.appendChild(item);
+    });
+    return;
+  }
+  cats.forEach(function(cat, i) {
+    var item = document.createElement("div");
+    item.style.cssText = "display:flex;align-items:center;gap:8px";
+    item.innerHTML = '<div style="width:10px;height:10px;border-radius:50%;background:'+(_donutColors[i % _donutColors.length])+';flex-shrink:0"></div>'+
+      '<div><div style="font-size:11px;color:var(--tl)">'+cat+'</div><div style="font-size:15px;font-weight:700">$'+(totals[cat]).toFixed(2)+'</div></div>';
+    legend.appendChild(item);
+  });
+}
+
 document.addEventListener("DOMContentLoaded", function() {
-  renderCards("all");
-  renderRouteList();
-  // Load saved Firebase config
+  // Load Firebase config
   try {
     var saved = localStorage.getItem("voya_fb_config");
     if (saved) FIREBASE_CONFIG = JSON.parse(saved);
   } catch(e) {}
+  // Load local data first (instant, no flicker)
+  loadLocal();
+  loadCategories();
+  renderCards("all");
+  renderRouteList();
+  updateDonut();
+  // Then connect Firebase for real-time sync
   initFirebase();
 });
 
