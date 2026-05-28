@@ -3,16 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Voya — Ciel's Road Trip 2026</title>
+<title>Voya &mdash; Ciel's Road Trip 2026</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 <style>
 :root{--gd:#2D4A3E;--gm:#3D6B5A;--gl:#8BAF9F;--cr:#F2F0EB;--cd:#E8E4DC;--sa:#E8856A;--wh:#FFFFFF;--td:#1A2820;--tm:#4A5E55;--tl:#8A9E95;--ru:#C4532A;--sh:0 4px 24px rgba(45,74,62,.1);--shl:0 12px 40px rgba(45,74,62,.15);}
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--td);display:flex;justify-content:center;min-height:100vh;padding:20px;}
 @media(min-width:500px){body{background:linear-gradient(135deg,#e8e4dc,#d5d0c8);padding:30px 20px;}}
-.app{width:390px;min-height:100vh;background:var(--cr);border-radius:40px;overflow:hidden;box-shadow:var(--shl),0 0 0 1px rgba(45,74,62,.08);display:flex;flex-direction:column;}
+.app{width:390px;min-height:100vh;background:var(--cr);border-radius:40px;overflow:hidden;box-shadow:var(--shl),0 0 0 1px rgba(45,74,62,.08);display:flex;flex-direction:column;position:relative;}
 .screen{display:none;flex-direction:column;flex:1;overflow-y:auto;padding-bottom:90px;scrollbar-width:none;}
 .screen::-webkit-scrollbar{display:none;}
 .screen.active{display:flex;}
@@ -57,7 +59,6 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--td);displ
 .walhdr{padding:14px 18px;display:flex;align-items:center;gap:8px;color:rgba(255,255,255,.6);font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;}
 .walbody{background:var(--wh);margin:0 12px 12px;border-radius:12px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;}
 .addstop{margin:0 24px 24px;padding:16px;border:2px dashed var(--gl);border-radius:20px;background:transparent;color:var(--gd);font-size:14px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:"DM Sans",sans-serif;}
-/* DETAIL */
 .dhero{position:relative;height:280px;overflow:hidden;flex-shrink:0;}
 .dhero-inner{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:72px;}
 .hgrad{position:absolute;bottom:0;left:0;right:0;height:65%;background:linear-gradient(transparent,rgba(20,35,28,.9));pointer-events:none;}
@@ -79,7 +80,6 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--td);displ
 .tmini{background:var(--wh);border-radius:18px;padding:20px 14px;box-shadow:var(--sh);display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:transform .2s;}
 .tmini:hover{transform:translateY(-2px);}
 .tminico{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;}
-/* ROUTE */
 .rplbl{display:flex;justify-content:space-between;font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--tm);margin-bottom:8px;}
 .rptrack{height:6px;background:var(--cd);border-radius:3px;overflow:hidden;}
 .rpfill{height:100%;background:var(--gd);border-radius:3px;}
@@ -97,23 +97,17 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--td);displ
 .npill{background:var(--sa);color:#fff;padding:5px 10px;border-radius:12px;font-size:12px;font-weight:600;}
 .epill{background:var(--cd);color:var(--tm);padding:5px 10px;border-radius:12px;font-size:12px;font-weight:500;}
 .tbadgetime{background:var(--cr);padding:5px 10px;border-radius:12px;font-size:12px;font-weight:600;}
-.rsacts{display:flex;gap:8px;}
+.rsacts{display:flex;gap:8px;flex-wrap:wrap;}
 .btn-nav{background:var(--gd);color:#fff;border:none;border-radius:12px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:"DM Sans",sans-serif;}
 .btn-out{background:transparent;color:var(--td);border:1.5px solid var(--cd);border-radius:12px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:"DM Sans",sans-serif;}
 .btn-share{width:100%;background:transparent;color:var(--td);border:1.5px solid var(--cd);border-radius:12px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:"DM Sans",sans-serif;}
 .icrcl{width:28px;height:28px;border-radius:50%;background:var(--cr);border:1.5px solid var(--cd);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;flex-shrink:0;}
 .dlbl{padding:8px 0 4px 58px;font-size:12px;color:var(--tl);font-style:italic;}
-/* SPENDING */
-.qentry{margin:0 24px 24px;background:var(--wh);border-radius:20px;padding:20px;box-shadow:var(--sh);}
-.amtw{display:flex;align-items:center;background:var(--cr);border-radius:14px;padding:12px 16px;margin-bottom:12px;}
-.ainp{background:none;border:none;font-size:22px;font-weight:600;outline:none;width:100%;font-family:"DM Sans",sans-serif;}
-.catsel{flex:1;padding:11px 14px;background:var(--cr);border:none;border-radius:12px;font-size:13px;font-weight:500;font-family:"DM Sans",sans-serif;cursor:pointer;outline:none;}
-.addbtn{background:var(--gd);color:#fff;border:none;border-radius:12px;padding:11px 20px;font-size:13px;font-weight:600;cursor:pointer;font-family:"DM Sans",sans-serif;}
-.exitem{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--cd);}
-.exitem:last-child{border-bottom:none;}
 .exico{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
-.exico.fuel{background:#FFF0E8;}.exico.food{background:#E8F0E8;}.exico.lodging{background:#E8EEF5;}
-/* WALLET */
+.exico.fuel{background:#FFF0E8;}
+.exico.food{background:#E8F0E8;}
+.exico.lodging{background:#E8EEF5;}
+.exico.misc{background:#F0EEF5;}
 .tcrdw{margin:0 24px 16px;background:var(--gd);border-radius:24px;overflow:hidden;box-shadow:0 8px 32px rgba(45,74,62,.25);}
 .thdr{padding:20px 20px 16px;display:flex;justify-content:space-between;align-items:flex-start;}
 .tstat{background:rgba(255,255,255,.15);color:#98E4C0;font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;margin-left:10px;}
@@ -124,7 +118,6 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--td);displ
 .tdiv::before,.tdiv::after{content:"";position:absolute;top:-12px;width:24px;height:24px;background:var(--cr);border-radius:50%;}
 .tdiv::before{left:-12px;}.tdiv::after{right:-12px;}
 .tbar{margin:16px;background:#fff;border-radius:12px;padding:14px;display:flex;flex-direction:column;align-items:center;gap:8px;}
-/* NAV */
 .bnav2{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:390px;background:var(--gd);border-radius:28px 28px 0 0;display:flex;align-items:center;justify-content:space-around;padding:14px 8px 20px;z-index:50;}
 .nitem{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:4px 18px;border-radius:16px;border:none;background:transparent;color:rgba(255,255,255,.5);font-family:"DM Sans",sans-serif;transition:all .2s;}
 .nitem.active{color:#fff;}
@@ -132,33 +125,6 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--td);displ
 .niico{font-size:18px;}
 .nilbl{font-size:10px;font-weight:500;}
 .ndoti{width:5px;height:5px;background:var(--sa);border-radius:50%;margin-top:2px;}
-@keyframes fiu{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-.screen.active>*{animation:fiu .28s ease both;}
-.screen.active>*:nth-child(1){animation-delay:.03s}
-.screen.active>*:nth-child(2){animation-delay:.07s}
-.screen.active>*:nth-child(3){animation-delay:.11s}
-.screen.active>*:nth-child(4){animation-delay:.15s}
-.screen.active>*:nth-child(5){animation-delay:.18s}
-.screen.active>*:nth-child(6){animation-delay:.21s}
-.screen.active>*:nth-child(7){animation-delay:.24s}
-.screen.active>*:nth-child(8){animation-delay:.27s}
-.screen.active>*:nth-child(9){animation-delay:.30s}
-.leaflet-popup-content-wrapper{border-radius:14px!important;box-shadow:0 4px 20px rgba(0,0,0,.12)!important;border:none!important;padding:0!important;}
-.leaflet-popup-content{margin:12px 16px!important;font-family:"DM Sans",sans-serif!important;}
-.leaflet-popup-tip-container{display:none!important;}
-.filehi{display:none;}
-/* ── ADDRESS SEARCH ── */
-.addr-search-wrap{position:relative;}
-.addr-results{position:absolute;top:100%;left:0;right:0;background:#fff;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.15);z-index:9999;max-height:220px;overflow-y:auto;margin-top:4px;}
-.addr-results.hidden{display:none;}
-.addr-result-item{padding:10px 14px;font-size:13px;color:var(--td);cursor:pointer;border-bottom:1px solid var(--cd);line-height:1.4;}
-.addr-result-item:last-child{border-bottom:none;}
-.addr-result-item:hover{background:var(--cr);}
-.addr-result-main{font-weight:600;}
-.addr-result-sub{font-size:11px;color:var(--tl);margin-top:2px;}
-.addr-search-spinner{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:14px;display:none;}
-
-/* ── MODALS ── */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:8000;display:flex;align-items:flex-end;justify-content:center;}
 .modal-overlay.hidden{display:none;}
 .modal-sheet{background:#fff;border-radius:24px 24px 0 0;padding:24px;width:100%;max-width:390px;max-height:80vh;overflow-y:auto;}
@@ -166,8 +132,8 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--td);displ
 .modal-close{background:none;border:none;font-size:22px;cursor:pointer;color:var(--tl);}
 .modal-field{margin-bottom:14px;}
 .modal-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--tl);margin-bottom:6px;}
-.modal-input{width:100%;padding:12px 14px;background:var(--cr);border:none;border-radius:12px;font-size:14px;color:var(--td);font-family:"DM Sans",sans-serif;outline:none;}
-.modal-input:focus{box-shadow:0 0 0 2px var(--gl);}
+.modal-input{width:100%;padding:12px 14px;background:var(--cr);border:1.5px solid transparent;border-radius:12px;font-size:14px;color:var(--td);font-family:"DM Sans",sans-serif;outline:none;box-sizing:border-box;}
+.modal-input:focus{border-color:var(--gl);}
 .modal-btn{width:100%;padding:15px;background:var(--gd);color:#fff;border:none;border-radius:16px;font-size:15px;font-weight:600;cursor:pointer;font-family:"DM Sans",sans-serif;margin-top:8px;}
 .modal-btn-del{width:100%;padding:12px;background:#fff3f0;color:var(--ru);border:1.5px solid #ffd5cc;border-radius:16px;font-size:14px;font-weight:600;cursor:pointer;font-family:"DM Sans",sans-serif;margin-top:8px;}
 .item-card-row{display:flex;align-items:center;gap:12px;background:#fff;border-radius:14px;padding:12px 14px;box-shadow:var(--sh);margin-bottom:10px;cursor:pointer;}
@@ -176,15 +142,12 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--td);displ
 .item-card-name{font-size:14px;font-weight:600;color:var(--td);}
 .item-card-sub{font-size:12px;color:var(--tl);margin-top:2px;}
 .item-card-edit{background:none;border:none;font-size:16px;cursor:pointer;color:var(--tl);padding:4px;}
-
-/* ── HOTEL DETAIL ── */
 .hd-hero{position:relative;height:260px;overflow:hidden;flex-shrink:0;}
-.hd-hero img,.hd-hero-ph{width:100%;height:100%;object-fit:cover;display:block;}
-.hd-hero-ph{display:flex;align-items:center;justify-content:center;font-size:72px;}
+.hd-hero-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:72px;}
 .hd-topbar{position:absolute;top:0;left:0;right:0;padding:20px;display:flex;justify-content:space-between;align-items:center;z-index:10;}
-.hd-back{width:40px;height:40px;background:rgba(255,255,255,.92);border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 12px rgba(0,0,0,.15);}
+.hd-back{width:40px;height:40px;background:rgba(255,255,255,.92);border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:var(--sh);}
 .hd-topicons{display:flex;gap:10px;}
-.hd-topicon{width:40px;height:40px;background:rgba(255,255,255,.92);border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 12px rgba(0,0,0,.15);}
+.hd-topicon{width:40px;height:40px;background:rgba(255,255,255,.92);border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:var(--sh);}
 .hd-confirmed{position:absolute;bottom:16px;left:20px;background:var(--gd);color:#fff;font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;letter-spacing:.5px;}
 .hd-body{padding:20px 24px 0;}
 .hd-name{font-family:"Playfair Display",serif;font-size:28px;font-weight:700;color:var(--td);margin-bottom:4px;}
@@ -194,7 +157,6 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--td);displ
 .hd-cell{flex:1;}
 .hd-cell-lbl{font-size:10px;font-weight:600;letter-spacing:.8px;color:var(--tl);text-transform:uppercase;margin-bottom:4px;}
 .hd-cell-val{font-size:18px;font-weight:700;color:var(--td);}
-.hd-cell-edit{font-size:11px;color:var(--ru);margin-left:4px;cursor:pointer;}
 .hd-divider{width:1px;background:var(--cd);margin:0 4px;}
 .hd-nights{color:var(--ru);font-weight:700;}
 .hd-checkout-row{display:flex;gap:12px;margin-bottom:14px;}
@@ -203,8 +165,6 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--td);displ
 .hd-room-ico{width:44px;height:44px;background:#e8f0ee;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
 .hd-conf-card{background:var(--wh);border-radius:16px;padding:14px 16px;box-shadow:var(--sh);display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
 .hd-notes-area{width:100%;min-height:90px;border:none;background:var(--cr);border-radius:12px;padding:14px;font-size:13px;color:var(--td);font-family:"DM Sans",sans-serif;resize:none;outline:none;}
-.hd-save-note{display:flex;justify-content:flex-end;margin-top:8px;}
-.hd-save-btn{background:none;border:none;cursor:pointer;font-size:13px;font-weight:600;color:var(--gd);font-family:"DM Sans",sans-serif;}
 .amenity-row{display:flex;gap:16px;flex-wrap:wrap;padding:4px 0 4px;}
 .amenity-item{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;}
 .amenity-ico{width:52px;height:52px;border-radius:50%;background:var(--cr);display:flex;align-items:center;justify-content:center;font-size:22px;}
@@ -213,13 +173,10 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--td);displ
 .hd-map-mini-inner{width:100%;height:100%;}
 .hd-map-navigate{position:absolute;bottom:12px;right:12px;background:var(--gd);color:#fff;border:none;border-radius:20px;padding:10px 18px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:"DM Sans",sans-serif;z-index:10;}
 .hd-manage-btn{margin:0 24px 24px;width:calc(100% - 48px);background:var(--gd);color:#fff;border:none;border-radius:24px;padding:16px;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:"DM Sans",sans-serif;}
-
-/* ── RESTAURANT DETAIL ── */
 .rd-hero{position:relative;height:240px;overflow:hidden;flex-shrink:0;}
 .rd-hero-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:72px;}
 .rd-topbar{position:absolute;top:0;left:0;right:0;padding:20px;display:flex;justify-content:space-between;z-index:10;}
-.rd-back{width:40px;height:40px;background:rgba(255,255,255,.92);border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 12px rgba(0,0,0,.15);}
-.rd-fav{width:40px;height:40px;background:rgba(255,255,255,.92);border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 12px rgba(0,0,0,.15);}
+.rd-back,.rd-fav{width:40px;height:40px;background:rgba(255,255,255,.92);border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 12px rgba(0,0,0,.2);}
 .rd-card{margin:0 24px;background:var(--wh);border-radius:20px;padding:16px 20px;box-shadow:var(--sh);margin-top:-32px;position:relative;z-index:5;}
 .rd-reservation{background:#fff3f0;color:var(--ru);font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;display:inline-flex;align-items:center;gap:4px;margin-bottom:10px;}
 .rd-name{font-family:"Playfair Display",serif;font-size:24px;font-weight:700;color:var(--td);}
@@ -248,24 +205,41 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--td);displ
 .rd-stars{color:#e8a840;font-size:13px;}
 .rd-review-text{font-size:12px;color:var(--tm);line-height:1.6;font-style:italic;}
 .rd-book-btn{margin:0 24px 24px;width:calc(100% - 48px);background:var(--gd);color:#fff;border:none;border-radius:24px;padding:16px;font-size:15px;font-weight:600;cursor:pointer;font-family:"DM Sans",sans-serif;}
-
-/* ── MAP LABEL STYLES ── */
-.map-stop-label{background:#fff;border-radius:10px;padding:5px 10px;box-shadow:0 2px 10px rgba(0,0,0,.18);border:none;white-space:nowrap;pointer-events:none;}
-.map-stop-label .lname{font-weight:700;font-size:12px;color:#1A2820;font-family:"DM Sans",sans-serif;}
-.map-stop-label .lsub{font-size:10px;color:#8A9E95;font-family:"DM Sans",sans-serif;}
+.map-stop-label{pointer-events:none;}
 .map-drive-chip{background:rgba(255,255,255,.92);border-radius:20px;padding:4px 10px;box-shadow:0 2px 8px rgba(0,0,0,.12);display:flex;align-items:center;gap:4px;white-space:nowrap;pointer-events:none;}
 .map-drive-chip span{font-size:11px;font-weight:600;color:#1A2820;font-family:"DM Sans",sans-serif;}
-#map-fullscreen{display:none;}
+#map-fullscreen{display:none;position:fixed;inset:0;z-index:9999;background:#fff;flex-direction:column;}
 #map-fullscreen.open{display:flex;}
 #map-full{width:100%;height:100%;}
-.leaflet-container .map-stop-label{pointer-events:none;}
-
+.addr-search-wrap{position:relative;}
+.addr-results{position:absolute;top:100%;left:0;right:0;background:#fff;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.15);z-index:9999;max-height:220px;overflow-y:auto;margin-top:4px;}
+.addr-results.hidden{display:none;}
+.addr-result-item{padding:10px 14px;font-size:13px;color:var(--td);cursor:pointer;border-bottom:1px solid var(--cd);line-height:1.4;}
+.addr-result-item:last-child{border-bottom:none;}
+.addr-result-item:hover{background:var(--cr);}
+.addr-result-main{font-weight:600;}
+.addr-result-sub{font-size:11px;color:var(--tl);margin-top:2px;}
+.payer-tag{padding:7px 16px;border-radius:20px;border:1.5px solid var(--cd);background:var(--cr);color:var(--tm);font-size:13px;font-weight:500;cursor:pointer;font-family:"DM Sans",sans-serif;transition:all .18s;}
+.payer-tag.active{background:var(--gd);border-color:var(--gd);color:#fff;}
+.payer-tag.add-tag{background:transparent;border-style:dashed;color:var(--tl);}
+.exp-ftag{padding:6px 16px;border-radius:20px;border:1.5px solid var(--cd);background:transparent;color:var(--tm);font-size:12px;font-weight:500;cursor:pointer;font-family:"DM Sans",sans-serif;white-space:nowrap;transition:all .18s;}
+.exp-ftag.active{background:var(--gd);border-color:var(--gd);color:#fff;}
+@keyframes fiu{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.screen.active>*{animation:fiu .28s ease both;}
+.screen.active>*:nth-child(1){animation-delay:.03s}
+.screen.active>*:nth-child(2){animation-delay:.07s}
+.screen.active>*:nth-child(3){animation-delay:.11s}
+.screen.active>*:nth-child(4){animation-delay:.15s}
+.screen.active>*:nth-child(5){animation-delay:.18s}
+.screen.active>*:nth-child(6){animation-delay:.21s}
+.screen.active>*:nth-child(7){animation-delay:.24s}
+.screen.active>*:nth-child(8){animation-delay:.27s}
+.leaflet-popup-content-wrapper{border-radius:14px!important;box-shadow:0 4px 20px rgba(0,0,0,.12)!important;border:none!important;padding:0!important;}
+.leaflet-popup-content{margin:12px 16px!important;font-family:"DM Sans",sans-serif!important;}
+.leaflet-popup-tip-container{display:none!important;}
+.filehi{display:none;}
 
 </style>
-
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 </head>
 <body>
 <div class="app">
@@ -284,7 +258,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--td);displ
     <div class="greeting">Good morning, Ciel</div>
     <div style="display:flex;align-items:center;gap:6px;color:var(--tm);font-size:13px">
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="3" width="12" height="10" rx="2" stroke="#4A5E55" stroke-width="1.5"/><path d="M4 1v3M10 1v3M1 7h12" stroke="#4A5E55" stroke-width="1.5" stroke-linecap="round"/></svg>
-      Departure: Jun 1, 2026 &#9998;
+      Departure: Jun 1, 2026
     </div>
   </div>
   <div class="tcrd" onclick="switchTab('route')">
@@ -310,10 +284,10 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--td);displ
   <div class="sscroll" id="stops-scroll"></div>
   <div class="secttit">Trip Spending</div>
   <div class="spgrid">
-    <div class="spcrd" onclick="switchTab('spending')"><div class="spico">&#9981;&#65039;</div><div class="splbl">GAS</div><div class="spamt">$0</div></div>
-    <div class="spcrd" onclick="switchTab('spending')"><div class="spico">&#127869;</div><div class="splbl">FOOD</div><div class="spamt">$0</div></div>
-    <div class="spcrd" onclick="switchTab('spending')"><div class="spico">&#128716;</div><div class="splbl">STAYS</div><div class="spamt">$0</div></div>
-    <div class="spcrd" onclick="switchTab('spending')"><div class="spico">&#127903;</div><div class="splbl">FEES</div><div class="spamt">$0</div></div>
+    <div class="spcrd" onclick="switchTab('spending')"><div class="spico">&#9981;</div><div class="splbl">GAS</div><div class="spamt" id="home-gas">$0</div></div>
+    <div class="spcrd" onclick="switchTab('spending')"><div class="spico">&#127869;</div><div class="splbl">FOOD</div><div class="spamt" id="home-food">$0</div></div>
+    <div class="spcrd" onclick="switchTab('spending')"><div class="spico">&#128716;</div><div class="splbl">STAYS</div><div class="spamt" id="home-lodging">$0</div></div>
+    <div class="spcrd" onclick="switchTab('spending')"><div class="spico">&#127903;</div><div class="splbl">FEES</div><div class="spamt" id="home-fees">$0</div></div>
   </div>
   <div class="walcrd" onclick="switchTab('wallet')">
     <div class="walhdr">&#127903; DIGITAL WALLET</div>
@@ -322,7 +296,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--td);displ
   <button class="addstop">&#8853; Add New Stop</button>
 </div>
 
-<!-- DETAIL -->
+<!-- STOP DETAIL -->
 <div class="screen" id="s-detail">
   <input type="file" accept="image/*" class="filehi" id="hero-file-input" onchange="handleHeroUpload(event)">
   <div class="dhero" id="d-hero">
@@ -334,7 +308,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--td);displ
     <div class="htitle"><div class="hname" id="d-name">Rochester, NY</div><div class="hsub" id="d-sub">New York, USA</div></div>
   </div>
   <div class="wbar">
-    <div class="wleft"><span style="font-size:26px">&#127780;</span><div><div class="wtemp" id="d-wtemp">65&#176;F &ndash; 73&#176;F</div><div class="wdesc" id="d-wdesc">Great conditions</div></div></div>
+    <div class="wleft"><span style="font-size:26px">&#127780;</span><div><div class="wtemp" id="d-wtemp">65&#176;F</div><div class="wdesc" id="d-wdesc">Great conditions</div></div></div>
     <span style="color:var(--tl);font-size:18px">&#8250;</span>
   </div>
   <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 24px 12px">
@@ -345,7 +319,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--td);displ
     </div>
   </div>
   <div id="d-hotels-list" style="padding:0 24px"></div>
-  <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 24px 12px">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 24px 12px">
     <span style="font-size:17px;font-weight:700">Saved Eats</span>
     <button onclick="showAddEat()" style="width:28px;height:28px;background:var(--gd);border:none;border-radius:50%;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1">+</button>
   </div>
@@ -366,9 +340,8 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--td);displ
   </div>
   <div id="share-banner" style="display:none;margin:0 24px 12px;background:var(--gd);border-radius:16px;padding:14px 18px">
     <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:4px">&#127758; Share with Friends</div>
-    <div style="font-size:12px;color:rgba(255,255,255,.8);margin-bottom:10px">Host this HTML file on GitHub Pages and share the URL — everyone can use it as a web app on mobile or desktop.</div>
-    <div style="font-size:11px;color:rgba(255,255,255,.6)">Tip: Add to Home Screen on iPhone/Android for full app experience &#128241;</div>
-    <button onclick="document.getElementById('share-banner').style.display='none'" style="margin-top:10px;background:rgba(255,255,255,.2);border:none;border-radius:10px;padding:7px 14px;color:#fff;font-size:12px;cursor:pointer;font-family:DM Sans,sans-serif">Got it</button>
+    <div style="font-size:12px;color:rgba(255,255,255,.8);margin-bottom:6px">Host on GitHub Pages and share the URL. Add to Home Screen for full app experience &#128241;</div>
+    <button onclick="document.getElementById('share-banner').style.display='none'" style="background:rgba(255,255,255,.2);border:none;border-radius:10px;padding:6px 14px;color:#fff;font-size:12px;cursor:pointer;font-family:DM Sans,sans-serif">Got it</button>
   </div>
   <div style="padding:0 24px 4px">
     <div class="rplbl"><span>CURRENT PROGRESS</span><span>0 / 4,200 Miles</span></div>
@@ -379,14 +352,10 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--td);displ
     <div class="mapdinfo">&#128205; ~4,200 Miles Total</div>
     <button onclick="openFullMap()" style="position:absolute;top:12px;right:12px;width:36px;height:36px;background:#fff;border:none;border-radius:10px;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.15);display:flex;align-items:center;justify-content:center;font-size:15px;z-index:999">&#x26F6;</button>
   </div>
-  <!-- FULLSCREEN MAP OVERLAY -->
-  <div id="map-fullscreen" style="display:none;position:fixed;inset:0;z-index:9999;background:#fff;flex-direction:column">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.08);position:relative;z-index:10">
-      <div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--td)">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6" height="6" rx="1.5" stroke="#2D4A3E" stroke-width="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5" stroke="#2D4A3E" stroke-width="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5" stroke="#2D4A3E" stroke-width="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5" stroke="#2D4A3E" stroke-width="1.5"/></svg>
-        LIVE ROUTE MAP
-      </div>
-      <button onclick="closeFullMap()" style="width:36px;height:36px;background:var(--cr);border:none;border-radius:10px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center">&#x26F6;</button>
+  <div id="map-fullscreen">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.08);z-index:10">
+      <div style="font-size:13px;font-weight:700;color:var(--td)">&#128506; LIVE ROUTE MAP</div>
+      <button onclick="closeFullMap()" style="width:36px;height:36px;background:var(--cr);border:none;border-radius:10px;cursor:pointer;font-size:16px">&#x26F6;</button>
     </div>
     <div id="map-full" style="flex:1;width:100%;"></div>
   </div>
@@ -401,40 +370,47 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--td);displ
     <span class="nlogo">Voya</span>
     <button class="nibtn">&#128276;</button>
   </div>
-  <div style="font-size:26px;font-weight:700;padding:0 24px 20px">Travel Spending</div>
-  <div style="padding:0 24px 24px">
+  <div style="font-size:26px;font-weight:700;padding:0 24px 16px">Travel Spending</div>
+  <div style="padding:0 24px 20px">
     <div style="background:var(--wh);border-radius:24px;padding:24px;box-shadow:var(--sh)">
       <div style="display:flex;justify-content:center;position:relative;margin-bottom:20px">
-        <svg id="donut-svg" width="200" height="200" viewBox="0 0 200 200">
+        <svg id="donut-svg" width="180" height="180" viewBox="0 0 200 200">
           <circle cx="100" cy="100" r="70" fill="none" stroke="#E8E4DC" stroke-width="28"/>
         </svg>
         <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center">
           <div style="font-size:12px;color:var(--tl)">Total</div>
-          <div id="donut-total" style="font-size:26px;font-weight:700">$0</div>
+          <div id="donut-total" style="font-size:24px;font-weight:700">$0</div>
         </div>
       </div>
       <div id="donut-legend" style="display:grid;grid-template-columns:1fr 1fr;gap:10px"></div>
     </div>
   </div>
   <div style="padding:0 24px 6px;font-size:11px;font-weight:700;letter-spacing:1px;color:var(--tm);text-transform:uppercase">Quick Entry</div>
-  <div class="qentry">
-    <div style="font-size:13px;font-weight:600;color:var(--td);margin-bottom:14px">Add Expense</div>
-    <div class="amtw" style="margin-bottom:10px">
-        <span style="font-size:18px;font-weight:500;color:var(--tl);margin-right:6px">$</span>
-        <input class="ainp" id="exp-amount" type="number" placeholder="0.00" step="0.01" min="0">
-      </div>
-    <input class="modal-input" id="exp-desc" placeholder="* Description (e.g. Lunch)" style="margin-bottom:10px;border:1.5px solid transparent" required>
-    <input class="modal-input" id="exp-payer" placeholder="* Paid by (e.g. Ciel)" style="margin-bottom:10px;border:1.5px solid transparent" required>
-    <div style="display:flex;gap:10px;align-items:center">
-      <select class="catsel" id="exp-cat" style="flex:1"></select>
+  <div style="margin:0 24px 16px;background:var(--wh);border-radius:20px;padding:20px;box-shadow:var(--sh)">
+    <div style="font-size:14px;font-weight:600;color:var(--td);margin-bottom:14px">Add Expense</div>
+    <div style="display:flex;align-items:center;background:var(--cr);border-radius:14px;padding:12px 16px;margin-bottom:10px">
+      <span style="font-size:18px;font-weight:500;color:var(--tl);margin-right:6px">$</span>
+      <input id="exp-amount" type="number" placeholder="0.00" step="0.01" min="0" style="background:none;border:none;font-size:22px;font-weight:600;color:var(--td);outline:none;width:100%;font-family:DM Sans,sans-serif">
+    </div>
+    <input id="exp-desc" placeholder="Description (e.g. Lunch) *" style="width:100%;padding:12px 14px;background:var(--cr);border:1.5px solid transparent;border-radius:12px;font-size:14px;color:var(--td);font-family:DM Sans,sans-serif;outline:none;margin-bottom:10px;box-sizing:border-box">
+    <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--tl);margin-bottom:7px">Paid By *</div>
+    <div id="payer-tags" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"></div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <select id="exp-cat" style="flex:1;padding:11px 14px;background:var(--cr);border:none;border-radius:12px;font-size:13px;font-weight:500;color:var(--td);font-family:DM Sans,sans-serif;cursor:pointer;outline:none"></select>
       <button onclick="showCatManager()" style="width:36px;height:36px;background:var(--cr);border:1.5px solid var(--cd);border-radius:10px;cursor:pointer;font-size:16px;flex-shrink:0">&#9881;</button>
-      <button class="addbtn" onclick="addExpense()">Add</button>
+      <button onclick="submitExpense()" style="background:var(--gd);color:#fff;border:none;border-radius:12px;padding:11px 22px;font-size:14px;font-weight:600;cursor:pointer;font-family:DM Sans,sans-serif">Add</button>
     </div>
   </div>
-  <div style="display:flex;justify-content:space-between;align-items:center;padding:0 24px 12px"><div style="font-size:16px;font-weight:600">Recent Expenses</div><div style="font-size:12px;color:var(--tl)">Jun 2026</div></div>
-  <div style="padding:0 24px" id="expense-list"><div style="text-align:center;padding:24px 0;color:var(--tl);font-size:13px">No expenses yet &mdash; start tracking!</div></div>
-  <button style="margin:16px 24px;padding:14px;background:var(--wh);border:1.5px solid var(--cd);border-radius:14px;font-size:13px;font-weight:600;color:var(--td);cursor:pointer;width:calc(100% - 48px);font-family:DM Sans,sans-serif">View Full History &#8594;</button>
-  <div style="margin:8px 24px 24px;background:linear-gradient(135deg,var(--gd),#1a2820);border-radius:20px;padding:24px"><div style="font-size:18px;font-weight:700;color:#fff;margin-bottom:4px">Stay Prepared.</div><div style="font-size:12px;color:rgba(255,255,255,.6)">Keep tracking to unlock insights.</div></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:0 24px 8px">
+    <div style="font-size:16px;font-weight:600">Recent Expenses</div>
+    <div id="exp-total-display" style="font-size:12px;color:var(--tl)"></div>
+  </div>
+  <div id="exp-filter-row" style="display:flex;gap:8px;padding:0 24px 12px;overflow-x:auto;scrollbar-width:none"></div>
+  <div id="expense-list" style="padding:0 24px;margin-bottom:16px"></div>
+  <div style="margin:8px 24px 24px;background:linear-gradient(135deg,var(--gd),#1a2820);border-radius:20px;padding:24px">
+    <div style="font-size:18px;font-weight:700;color:#fff;margin-bottom:4px">Stay Prepared.</div>
+    <div style="font-size:12px;color:rgba(255,255,255,.6)">Keep tracking to unlock insights.</div>
+  </div>
 </div>
 
 <!-- WALLET -->
@@ -480,10 +456,11 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--td);displ
   </div>
 </div>
 
-
 <!-- HOTEL DETAIL -->
 <div class="screen" id="s-hotel-detail">
-  <div class="hd-hero" id="hdd-hero">
+  <input type="hidden" id="hdd-sid" value="0">
+  <input type="hidden" id="hdd-hidx" value="0">
+  <div class="hd-hero">
     <div class="hd-hero-ph" id="hdd-hero-inner" style="background:#2d4a3e">&#127968;</div>
     <div class="hd-topbar">
       <button class="hd-back" onclick="switchTab('detail')">&#8592;</button>
@@ -493,16 +470,12 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--td);displ
         <button class="hd-topicon">&#9825;</button>
       </div>
     </div>
-    <div class="hd-confirmed" id="hdd-status">CONFIRMED</div>
+    <div class="hd-confirmed" id="hdd-status">UPCOMING</div>
   </div>
-  <input type="hidden" id="hdd-sid" value="0">
-  <input type="hidden" id="hdd-hidx" value="0">
-  <div style="overflow-y:auto;flex:1;padding-bottom:100px;" id="hdd-scroll">
+  <div style="overflow-y:auto;flex:1;padding-bottom:100px">
     <div class="hd-body">
       <div class="hd-name" id="hdd-name">Hotel Name</div>
       <div class="hd-loc">&#128205; <span id="hdd-loc">Location</span></div>
-
-      <!-- Stay dates -->
       <div class="hd-info-card">
         <div class="hd-row">
           <div class="hd-cell">
@@ -516,7 +489,6 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--td);displ
           </div>
         </div>
       </div>
-
       <div class="hd-checkout-row">
         <div class="hd-checkout-cell">
           <div class="hd-cell-lbl">Check-In</div>
@@ -527,7 +499,6 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--td);displ
           <input id="hdd-checkout" style="font-size:15px;font-weight:600;background:none;border:none;outline:none;width:100%;font-family:DM Sans,sans-serif;color:var(--td);margin-top:4px" placeholder="By 11:00 AM">
         </div>
       </div>
-
       <div class="hd-room-card">
         <div class="hd-room-ico">&#128716;</div>
         <div style="flex:1">
@@ -536,7 +507,6 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--td);displ
         </div>
         <span style="font-size:16px;color:var(--sa)">&#9998;</span>
       </div>
-
       <div class="hd-conf-card">
         <div style="flex:1">
           <div class="hd-cell-lbl">Confirmation Number</div>
@@ -544,15 +514,11 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--td);displ
         </div>
         <button onclick="navigator.clipboard&&navigator.clipboard.writeText(document.getElementById('hdd-conf').value)" style="background:var(--cr);border:none;border-radius:10px;width:36px;height:36px;cursor:pointer;font-size:16px">&#128203;</button>
       </div>
-
-      <!-- Notes -->
       <div style="font-size:17px;font-weight:700;color:var(--td);margin-bottom:12px">Personal Notes</div>
       <div class="hd-info-card" style="margin-bottom:20px">
-        <textarea class="hd-notes-area" placeholder="Add notes about your stay (e.g., room preference, gate codes)..."></textarea>
-        <div class="hd-save-note"><button class="hd-save-btn">Save Note</button></div>
+        <textarea class="hd-notes-area" placeholder="Add notes about your stay..."></textarea>
+        <div style="display:flex;justify-content:flex-end;margin-top:8px"><button style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:600;color:var(--gd);font-family:DM Sans,sans-serif">Save Note</button></div>
       </div>
-
-      <!-- Amenities -->
       <div style="font-size:17px;font-weight:700;color:var(--td);margin-bottom:14px">Amenities</div>
       <div class="amenity-row" style="margin-bottom:24px">
         <div class="amenity-item"><div class="amenity-ico">&#128246;</div><div class="amenity-lbl">WiFi</div></div>
@@ -561,13 +527,8 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--td);displ
         <div class="amenity-item"><div class="amenity-ico">&#127869;</div><div class="amenity-lbl">Dining</div></div>
         <div class="amenity-item"><div class="amenity-ico">&#128663;</div><div class="amenity-lbl">Parking</div></div>
       </div>
-
-      <!-- Location mini map -->
       <div style="font-size:17px;font-weight:700;color:var(--td);margin-bottom:12px">Location</div>
-      <div class="hd-map-mini">
-        <div class="hd-map-mini-inner" id="hdd-map"></div>
-        <button class="hd-map-navigate">&#9650; Navigate</button>
-      </div>
+      <div class="hd-map-mini"><div class="hd-map-mini-inner" id="hdd-map"></div><button class="hd-map-navigate">&#9650; Navigate</button></div>
     </div>
   </div>
   <button onclick="saveHotelDetail()" style="margin:0 24px 10px;width:calc(100% - 48px);background:var(--gd);color:#fff;border:none;border-radius:24px;padding:14px;font-size:14px;font-weight:600;cursor:pointer;font-family:DM Sans,sans-serif">&#10003; Save Changes</button>
@@ -576,195 +537,91 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--td);displ
 
 <!-- RESTAURANT DETAIL -->
 <div class="screen" id="s-rest-detail">
-  <div class="rd-hero" id="rdd-hero">
+  <div class="rd-hero">
     <div class="rd-hero-ph" id="rdd-hero-inner" style="background:#2d4a3e">&#127869;</div>
     <div class="rd-topbar">
       <button class="rd-back" onclick="switchTab('detail')">&#8592;</button>
       <button class="rd-fav">&#9825;</button>
     </div>
   </div>
-
-  <div style="overflow-y:auto;flex:1;padding-bottom:100px;">
-    <!-- Main card floating over hero -->
+  <div style="overflow-y:auto;flex:1;padding-bottom:100px">
     <div class="rd-card">
-      <div class="rd-reservation" id="rdd-reservation">&#128197; Reservation: 7:30 PM</div>
+      <div class="rd-reservation" id="rdd-reservation">&#128197; Reservation available</div>
       <div style="display:flex;justify-content:space-between;align-items:flex-start">
-        <div>
-          <div class="rd-name" id="rdd-name">Restaurant Name</div>
-          <div class="rd-type" id="rdd-type">American &middot; Casual</div>
-        </div>
+        <div><div class="rd-name" id="rdd-name">Restaurant</div><div class="rd-type" id="rdd-type">American</div></div>
         <div style="display:flex;align-items:center;gap:4px;font-size:13px;font-weight:600;color:var(--tl)">&#9733; <span id="rdd-rating">4.8</span></div>
       </div>
       <div class="rd-stats">
         <div class="rd-stat"><div class="rd-stat-lbl">Distance</div><div class="rd-stat-val" id="rdd-dist">8 min</div></div>
         <div class="rd-stat"><div class="rd-stat-lbl">Price</div><div class="rd-stat-val" id="rdd-price">$$$</div></div>
-        <div class="rd-stat"><div class="rd-stat-lbl">Status</div><div class="rd-stat-val" style="color:#3d8a5a" id="rdd-status">Open</div></div>
+        <div class="rd-stat"><div class="rd-stat-lbl">Status</div><div class="rd-stat-val" style="color:#3d8a5a">Open</div></div>
       </div>
-      <div class="rd-desc" id="rdd-desc">A great dining experience awaits.</div>
+      <div class="rd-desc" id="rdd-desc">A great dining spot.</div>
     </div>
-
-    <!-- Action buttons -->
     <div class="rd-action-row">
       <button class="rd-action-btn">&#9650; Navigate</button>
       <button class="rd-action-btn">&#128222; Call</button>
       <button class="rd-action-btn">&#127760; Website</button>
     </div>
-
-    <!-- Location -->
     <div class="rd-section">
-      <div class="rd-section-hdr">
-        <div class="rd-section-title">Location</div>
-        <span class="rd-copy-link">Copy Address</span>
-      </div>
-      <div class="rd-map-mini">
-        <div class="rd-map-inner" id="rdd-map"></div>
-      </div>
+      <div class="rd-section-hdr"><div class="rd-section-title">Location</div><span class="rd-copy-link">Copy Address</span></div>
+      <div class="rd-map-mini"><div class="rd-map-inner" id="rdd-map"></div></div>
       <div class="rd-address" id="rdd-address">Address</div>
       <div class="rd-address-sub" id="rdd-address-sub">Located along the route</div>
     </div>
-
-    <!-- Personal Notes -->
     <div class="rd-section">
       <div class="rd-section-title" style="margin-bottom:12px">Personal Notes</div>
       <div style="background:var(--wh);border-radius:16px;padding:14px;box-shadow:var(--sh)">
-        <textarea class="rd-notes-area" placeholder="Write a note (e.g., must-try dish, reservation details)..."></textarea>
-        <div style="display:flex;justify-content:flex-end;margin-top:4px"><span style="font-size:18px;color:var(--tl);cursor:pointer">&#9998;</span></div>
+        <textarea class="rd-notes-area" placeholder="Write a note (e.g., must-try dish)..."></textarea>
       </div>
     </div>
-
-    <!-- Reviews -->
     <div class="rd-section">
-      <div class="rd-section-hdr">
-        <div class="rd-section-title">Guest Reviews</div>
-        <span class="rd-copy-link">See All</span>
+      <div class="rd-section-hdr"><div class="rd-section-title">Guest Reviews</div><span class="rd-copy-link">See All</span></div>
+      <div class="rd-review-card">
+        <div class="rd-reviewer"><div class="rd-reviewer-ava" style="background:#5a7a8a">MJ</div><div><div class="rd-reviewer-name">Marcus Jensen</div><div class="rd-reviewer-time">2 days ago</div></div><div class="rd-stars" style="margin-left:auto">&#9733;&#9733;&#9733;&#9733;&#9733;</div></div>
+        <div class="rd-review-text">"The view is truly second to none. Grab a seat on the terrace."</div>
       </div>
       <div class="rd-review-card">
-        <div class="rd-reviewer">
-          <div class="rd-reviewer-ava" style="background:#5a7a8a">MJ</div>
-          <div>
-            <div class="rd-reviewer-name">Marcus Jensen</div>
-            <div class="rd-reviewer-time">2 days ago</div>
-          </div>
-          <div class="rd-stars" style="margin-left:auto">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-        </div>
-        <div class="rd-review-text">"The view is truly second to none. Grab a seat on the terrace if you can. Absolutely stunning experience."</div>
-      </div>
-      <div class="rd-review-card">
-        <div class="rd-reviewer">
-          <div class="rd-reviewer-ava" style="background:#8a5a6a">SL</div>
-          <div>
-            <div class="rd-reviewer-name">Sarah Lin</div>
-            <div class="rd-reviewer-time">1 week ago</div>
-          </div>
-          <div class="rd-stars" style="margin-left:auto">&#9733;&#9733;&#9733;&#9733;&#9734;</div>
-        </div>
-        <div class="rd-review-text">"Pricey, but worth it for the sunset alone. A perfect stop on a road trip."</div>
+        <div class="rd-reviewer"><div class="rd-reviewer-ava" style="background:#8a5a6a">SL</div><div><div class="rd-reviewer-name">Sarah Lin</div><div class="rd-reviewer-time">1 week ago</div></div><div class="rd-stars" style="margin-left:auto">&#9733;&#9733;&#9733;&#9733;&#9734;</div></div>
+        <div class="rd-review-text">"Pricey, but worth it for the sunset alone."</div>
       </div>
     </div>
   </div>
   <button class="rd-book-btn">&#128197; Book Table</button>
 </div>
-<!-- BOTTOM NAV -->
-<nav class="bnav2">
-  <button class="nitem" onclick="switchTab('route')" id="n-route"><span class="niico">&#8599;</span><span class="nilbl">Route</span></button>
-  <button class="nitem active" onclick="switchTab('home')" id="n-home"><span class="niico">&#127968;</span><span class="nilbl">Home</span><div class="ndoti"></div></button>
-  <button class="nitem" onclick="switchTab('spending')" id="n-spending"><span class="niico">&#128179;</span><span class="nilbl">Spending</span></button>
-  <button class="nitem" onclick="switchTab('wallet')" id="n-wallet"><span class="niico">&#127903;</span><span class="nilbl">Wallet</span></button>
-</nav>
 
-
-
-
-<!-- CATEGORY MANAGER MODAL -->
-<div class="modal-overlay hidden" id="modal-cat">
-  <div class="modal-sheet">
-    <div class="modal-title">
-      <span>&#127991; Spending Categories</span>
-      <button class="modal-close" onclick="closeModal('modal-cat')">&#10005;</button>
-    </div>
-    <div id="cat-list" style="margin-bottom:16px"></div>
-    <div style="display:flex;gap:10px">
-      <input class="modal-input" id="new-cat-input" placeholder="New category name..." style="flex:1">
-      <button class="addbtn" onclick="addCategory()">Add</button>
-    </div>
-  </div>
-</div>
-
-<!-- FIREBASE SETUP MODAL -->
-<div class="modal-overlay hidden" id="modal-firebase">
-  <div class="modal-sheet">
-    <div class="modal-title">
-      <span>&#128279; Connect Firebase Sync</span>
-      <button class="modal-close" onclick="closeModal('modal-firebase')">&#10005;</button>
-    </div>
-    <div style="font-size:13px;color:var(--tm);margin-bottom:16px;line-height:1.6">
-      <b>Free setup — 3 steps:</b><br>
-      1. Go to <a href="https://console.firebase.google.com" target="_blank" style="color:var(--gd)">console.firebase.google.com</a><br>
-      2. Create project → Realtime Database → Start in test mode<br>
-      3. Project Settings → Your apps → Add Web app → copy config below
-    </div>
-    <div class="modal-field"><div class="modal-label">API Key</div><input class="modal-input" id="fb-apiKey" placeholder="AIza..."></div>
-    <div class="modal-field"><div class="modal-label">Auth Domain</div><input class="modal-input" id="fb-authDomain" placeholder="yourproject.firebaseapp.com"></div>
-    <div class="modal-field"><div class="modal-label">Database URL</div><input class="modal-input" id="fb-databaseURL" placeholder="https://yourproject-default-rtdb.firebaseio.com"></div>
-    <div class="modal-field"><div class="modal-label">Project ID</div><input class="modal-input" id="fb-projectId" placeholder="yourproject"></div>
-    <div class="modal-field"><div class="modal-label">Storage Bucket</div><input class="modal-input" id="fb-storageBucket" placeholder="yourproject.appspot.com"></div>
-    <div class="modal-field"><div class="modal-label">Messaging Sender ID</div><input class="modal-input" id="fb-messagingSenderId" placeholder="123456789"></div>
-    <div class="modal-field"><div class="modal-label">App ID</div><input class="modal-input" id="fb-appId" placeholder="1:123:web:abc..."></div>
-    <button class="modal-btn" onclick="saveFirebaseConfig()">&#128279; Connect &amp; Reload</button>
-    <div style="font-size:11px;color:var(--tl);margin-top:10px;text-align:center">Config saved in browser — each person pastes it once</div>
-  </div>
-</div>
-
-<!-- EDIT STOP MODAL -->
+<!-- MODALS -->
 <div class="modal-overlay hidden" id="modal-stop">
   <div class="modal-sheet">
-    <div class="modal-title">
-      <span>Edit Stop</span>
-      <button class="modal-close" onclick="closeModal('modal-stop')">&#10005;</button>
-    </div>
+    <div class="modal-title"><span>Edit Stop</span><button class="modal-close" onclick="closeModal('modal-stop')">&#10005;</button></div>
     <input type="hidden" id="ms-stop-idx" value="0">
-    <div class="modal-field">
-      <div class="modal-label">Destination Name</div>
-      <input class="modal-input" id="ms-name" placeholder="e.g. Denver, CO">
-    </div>
+    <div class="modal-field"><div class="modal-label">Destination Name</div><input class="modal-input" id="ms-name" placeholder="e.g. Denver, CO"></div>
     <div class="modal-field">
       <div class="modal-label">Address / Navigation Target</div>
       <div class="addr-search-wrap">
-        <input class="modal-input" id="ms-addr" placeholder="Search address or place..." autocomplete="off" oninput="addrSearch('ms-addr','ms-addr-results')">
-        <span class="addr-search-spinner" id="ms-addr-spin">&#8987;</span>
+        <input class="modal-input" id="ms-addr" placeholder="Search address..." autocomplete="off" oninput="addrSearch('ms-addr','ms-addr-results')">
         <div class="addr-results hidden" id="ms-addr-results"></div>
       </div>
-      <div style="font-size:11px;color:var(--tl);margin-top:5px">&#128205; This is where Navigate will take you in Google Maps</div>
+      <div style="font-size:11px;color:var(--tl);margin-top:5px">&#128205; This is where Navigate opens in Google Maps</div>
     </div>
-    <div class="modal-field">
-      <div class="modal-label">Nights</div>
-      <input class="modal-input" id="ms-nights" type="number" placeholder="1" min="0">
-    </div>
+    <div class="modal-field"><div class="modal-label">Nights</div><input class="modal-input" id="ms-nights" type="number" placeholder="1" min="0"></div>
     <button class="modal-btn" onclick="saveStop()">Save Changes</button>
   </div>
 </div>
 
-<!-- ADD/EDIT HOTEL MODAL -->
 <div class="modal-overlay hidden" id="modal-hotel">
   <div class="modal-sheet">
-    <div class="modal-title">
-      <span id="modal-hotel-title">Add Hotel</span>
-      <button class="modal-close" onclick="closeModal('modal-hotel')">&#10005;</button>
-    </div>
+    <div class="modal-title"><span id="modal-hotel-title">Add Hotel</span><button class="modal-close" onclick="closeModal('modal-hotel')">&#10005;</button></div>
     <input type="hidden" id="mh-edit-idx" value="-1">
-    <div class="modal-field">
-      <div class="modal-label">Hotel Name</div>
+    <div class="modal-field"><div class="modal-label">Hotel Name</div>
       <div class="addr-search-wrap">
         <input class="modal-input" id="mh-name" placeholder="Search hotel name..." autocomplete="off" oninput="nameSearch('mh-name','mh-name-results','mh-addr')">
-        <span class="addr-search-spinner" id="mh-name-spin">&#8987;</span>
         <div class="addr-results hidden" id="mh-name-results"></div>
       </div>
     </div>
-    <div class="modal-field">
-      <div class="modal-label">Address</div>
+    <div class="modal-field"><div class="modal-label">Address</div>
       <div class="addr-search-wrap">
-        <input class="modal-input" id="mh-addr" placeholder="Search or auto-filled from name..." autocomplete="off" oninput="addrSearch('mh-addr','mh-addr-results')">
-        <span class="addr-search-spinner" id="mh-addr-spin">&#8987;</span>
+        <input class="modal-input" id="mh-addr" placeholder="Search address..." autocomplete="off" oninput="addrSearch('mh-addr','mh-addr-results')">
         <div class="addr-results hidden" id="mh-addr-results"></div>
       </div>
     </div>
@@ -772,51 +629,73 @@ body{font-family:"DM Sans",sans-serif;background:var(--cr);color:var(--td);displ
     <div class="modal-field"><div class="modal-label">Nights</div><input class="modal-input" id="mh-nights" type="number" placeholder="1" min="1"></div>
     <div class="modal-field"><div class="modal-label">Room Type</div><input class="modal-input" id="mh-room" placeholder="e.g. Ocean View Suite"></div>
     <div class="modal-field"><div class="modal-label">Confirmation #</div><input class="modal-input" id="mh-conf" placeholder="e.g. PRI-88294-X"></div>
-    <div class="modal-field"><div class="modal-label">Status</div>
-      <select class="modal-input" id="mh-status"><option>Confirmed</option><option>Pending</option><option>Upcoming</option></select>
-    </div>
+    <div class="modal-field"><div class="modal-label">Status</div><select class="modal-input" id="mh-status"><option>Confirmed</option><option>Pending</option><option>Upcoming</option></select></div>
     <button class="modal-btn" onclick="saveHotel()">Save Hotel</button>
     <button class="modal-btn-del" id="mh-del-btn" onclick="deleteHotel()" style="display:none">&#128465; Delete Hotel</button>
   </div>
 </div>
 
-<!-- ADD/EDIT EAT MODAL -->
 <div class="modal-overlay hidden" id="modal-eat">
   <div class="modal-sheet">
-    <div class="modal-title">
-      <span id="modal-eat-title">Add Restaurant</span>
-      <button class="modal-close" onclick="closeModal('modal-eat')">&#10005;</button>
-    </div>
+    <div class="modal-title"><span id="modal-eat-title">Add Restaurant</span><button class="modal-close" onclick="closeModal('modal-eat')">&#10005;</button></div>
     <input type="hidden" id="me-edit-idx" value="-1">
-    <div class="modal-field">
-      <div class="modal-label">Restaurant Name</div>
+    <div class="modal-field"><div class="modal-label">Restaurant Name</div>
       <div class="addr-search-wrap">
-        <input class="modal-input" id="me-name" placeholder="Search restaurant name..." autocomplete="off" oninput="nameSearch('me-name','me-name-results','me-addr-hidden')">
-        <span class="addr-search-spinner" id="me-name-spin">&#8987;</span>
+        <input class="modal-input" id="me-name" placeholder="Search restaurant..." autocomplete="off" oninput="nameSearch('me-name','me-name-results','me-addr-hidden')">
         <div class="addr-results hidden" id="me-name-results"></div>
       </div>
       <input type="hidden" id="me-addr-hidden">
     </div>
     <div class="modal-field"><div class="modal-label">Category</div><input class="modal-input" id="me-cat" placeholder="e.g. American · High-end"></div>
     <div class="modal-field"><div class="modal-label">Distance</div><input class="modal-input" id="me-dist" placeholder="e.g. 8 min"></div>
-    <div class="modal-field"><div class="modal-label">Price</div>
-      <select class="modal-input" id="me-price"><option>$</option><option>$$</option><option>$$$</option><option>$$$$</option></select>
-    </div>
-    <div class="modal-field"><div class="modal-label">Emoji Icon</div><input class="modal-input" id="me-emoji" placeholder="e.g. 🍽 🍔 🌮 🍕"></div>
+    <div class="modal-field"><div class="modal-label">Price</div><select class="modal-input" id="me-price"><option>$</option><option>$$</option><option>$$$</option><option>$$$$</option></select></div>
+    <div class="modal-field"><div class="modal-label">Emoji Icon</div><input class="modal-input" id="me-emoji" placeholder="e.g. &#127869;"></div>
     <div class="modal-field"><div class="modal-label">Description</div><textarea class="modal-input" id="me-desc" rows="3" placeholder="What makes this place special?"></textarea></div>
     <button class="modal-btn" onclick="saveEat()">Save Restaurant</button>
     <button class="modal-btn-del" id="me-del-btn" onclick="deleteEat()" style="display:none">&#128465; Delete Restaurant</button>
   </div>
 </div>
+
+<div class="modal-overlay hidden" id="modal-cat">
+  <div class="modal-sheet">
+    <div class="modal-title"><span>&#127991; Spending Categories</span><button class="modal-close" onclick="closeModal('modal-cat')">&#10005;</button></div>
+    <div id="cat-list" style="margin-bottom:16px"></div>
+    <div style="display:flex;gap:10px">
+      <input class="modal-input" id="new-cat-input" placeholder="New category..." style="flex:1">
+      <button style="background:var(--gd);color:#fff;border:none;border-radius:12px;padding:11px 20px;font-size:13px;font-weight:600;cursor:pointer;font-family:DM Sans,sans-serif" onclick="addCategory()">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bnav2">
+  <button class="nitem" onclick="switchTab('route')" id="n-route"><span class="niico">&#8599;</span><span class="nilbl">Route</span></button>
+  <button class="nitem active" onclick="switchTab('home')" id="n-home"><span class="niico">&#127968;</span><span class="nilbl">Home</span><div class="ndoti"></div></button>
+  <button class="nitem" onclick="switchTab('spending')" id="n-spending"><span class="niico">&#128179;</span><span class="nilbl">Spending</span></button>
+  <button class="nitem" onclick="switchTab('wallet')" id="n-wallet"><span class="niico">&#127903;</span><span class="nilbl">Wallet</span></button>
+</nav>
 </div>
 
 <script>
-// ════════════════════════════════════════════════
-//  FIREBASE CONFIG
-//  → Replace with your own from Firebase Console
-//    console.firebase.google.com → New Project →
-//    Realtime Database → Get config
-// ════════════════════════════════════════════════
+var STOPS=[
+  {id:0,name:"Rochester, NY",sub:"New York, USA",dates:"Jun 1",nights:1,type:"city",em:"&#127961;",bg:"#3d5a7a",lat:43.1566,lng:-77.6088,hotel:"Hilton Garden Inn Rochester",addr:"235 East Main St, Rochester, NY",tmp:"65&#176;F &ndash; 73&#176;F",wx:"Partly cloudy, great for city walks",eats:[{n:"Dinosaur Bar-B-Que",c:"BBQ &middot; Casual",d:"4 min",e:"&#127830;"},{n:"The Owl House",c:"American &middot; Trendy",d:"7 min",e:"&#129417;"}],drive:"5h drive west on I-90"},
+  {id:1,name:"Columbus, OH",sub:"Ohio, USA",dates:"Jun 2",nights:1,type:"city",em:"&#127963;",bg:"#5a7a4a",lat:39.9612,lng:-82.9988,hotel:"Sonesta Columbus Downtown",addr:"33 E Nationwide Blvd, Columbus, OH",tmp:"68&#176;F &ndash; 76&#176;F",wx:"Sunny with light breeze",eats:[{n:"The Pearl",c:"Seafood &middot; Upscale",d:"5 min",e:"&#129450;"},{n:"North Market",c:"Market &middot; Casual",d:"3 min",e:"&#127829;"}],drive:"6h drive southwest on I-70"},
+  {id:2,name:"St. Louis, MO",sub:"Missouri, USA",dates:"Jun 3",nights:1,type:"city",em:"&#127781;",bg:"#7a5a3a",lat:38.6270,lng:-90.1994,hotel:"Four Seasons St. Louis",addr:"999 N 2nd St, St. Louis, MO",tmp:"72&#176;F &ndash; 82&#176;F",wx:"Warm &amp; sunny &mdash; perfect for the Arch",eats:[{n:"Pappy&#39;s Smokehouse",c:"BBQ &middot; Iconic",d:"8 min",e:"&#128293;"},{n:"Ices Plain &amp; Fancy",c:"Dessert &middot; Fun",d:"6 min",e:"&#127846;"}],drive:"4h drive west on I-70"},
+  {id:3,name:"Kansas City, MO",sub:"Missouri, USA",dates:"Jun 4",nights:1,type:"city",em:"&#127929;",bg:"#6a7a3a",lat:39.0997,lng:-94.5786,hotel:"Hotel Kansas City",addr:"1228 Baltimore Ave, Kansas City, MO",tmp:"70&#176;F &ndash; 80&#176;F",wx:"Clear skies, mild winds",eats:[{n:"Joe&#39;s Kansas City BBQ",c:"BBQ &middot; World Famous",d:"12 min",e:"&#127830;"},{n:"Columbus Park Ramen",c:"Ramen &middot; Hip",d:"9 min",e:"&#127836;"}],drive:"4h drive west on I-70"},
+  {id:4,name:"Hays, KS",sub:"Kansas, USA",dates:"Jun 5",nights:1,type:"city",em:"&#127807;",bg:"#7a8a5a",lat:38.8790,lng:-99.3268,hotel:"Hampton Inn Hays",addr:"4002 General Hays Rd, Hays, KS",tmp:"75&#176;F &ndash; 88&#176;F",wx:"Wide open skies, Great Plains winds",eats:[{n:"Thirsty&#39;s",c:"American &middot; Lively",d:"6 min",e:"&#127828;"},{n:"Gutierrez Restaurant",c:"Mexican &middot; Local",d:"5 min",e:"&#127790;"}],drive:"4h drive west, enter the Rockies"},
+  {id:5,name:"Denver, CO",sub:"Colorado, USA",dates:"Jun 6&#8211;7",nights:2,type:"city",em:"&#127956;",bg:"#5a7a8a",lat:39.7392,lng:-104.9903,hotel:"The Brown Palace Hotel",addr:"321 17th St, Denver, CO",tmp:"60&#176;F &ndash; 75&#176;F",wx:"Mile High sunshine &mdash; layer up in AM",eats:[{n:"Mercantile Dining",c:"American &middot; Farm-to-table",d:"10 min",e:"&#129367;"},{n:"Tacos Tequila Whiskey",c:"Mexican &middot; Hip",d:"7 min",e:"&#127790;"}],drive:"4h drive west on I-70 through the Rockies"},
+  {id:6,name:"Grand Junction, CO",sub:"Colorado, USA",dates:"Jun 8",nights:1,type:"city",em:"&#9968;",bg:"#8a6a3a",lat:39.0639,lng:-108.5506,hotel:"Doubletree Grand Junction",addr:"743 Horizon Dr, Grand Junction, CO",tmp:"80&#176;F &ndash; 95&#176;F",wx:"Hot and sunny &mdash; stay hydrated",eats:[{n:"626 on Rood",c:"American &middot; Fine Dining",d:"8 min",e:"&#127863;"},{n:"Pablo&#39;s Pizza",c:"Pizza &middot; Casual",d:"5 min",e:"&#127829;"}],drive:"2h drive into Utah canyon country"},
+  {id:7,name:"Arches NP",sub:"Moab, Utah, USA",dates:"Jun 9&#8211;10",nights:2,type:"park",em:"&#127964;",bg:"#c4532a",lat:38.7331,lng:-109.5925,hotel:"Moab Under Canvas",addr:"13784 US-191, Moab, UT",tmp:"85&#176;F &ndash; 100&#176;F",wx:"Desert heat &mdash; hike early morning",eats:[{n:"Desert Bistro",c:"American &middot; Upscale",d:"15 min",e:"&#127869;"},{n:"Moab Brewery",c:"Pub &middot; Casual",d:"12 min",e:"&#127866;"}],drive:"4.5h drive southwest through canyon lands"},
+  {id:8,name:"Bryce Canyon NP",sub:"Utah, USA",dates:"Jun 11&#8211;12",nights:2,type:"park",em:"&#129505;",bg:"#e8856a",lat:37.5930,lng:-112.1871,hotel:"The Lodge at Bryce Canyon",addr:"Bryce Canyon City, UT 84764",tmp:"65&#176;F &ndash; 80&#176;F",wx:"Cool at rim &mdash; hoodoos glow at sunrise",eats:[{n:"Bryce Canyon Dining Room",c:"American &middot; Classic",d:"2 min",e:"&#127869;"},{n:"Valhalla Pizzeria",c:"Pizza &middot; Casual",d:"5 min",e:"&#127829;"}],drive:"4h drive southwest to the neon desert"},
+  {id:9,name:"Las Vegas, NV",sub:"Nevada, USA",dates:"Jun 13&#8211;14",nights:2,type:"city",em:"&#127920;",bg:"#1a1a2a",lat:36.1699,lng:-115.1398,hotel:"The Venetian Resort",addr:"3355 Las Vegas Blvd S, Las Vegas, NV",tmp:"95&#176;F &ndash; 108&#176;F",wx:"Desert heat &mdash; stay in A/C midday",eats:[{n:"&eacute; by Jos&eacute; Andr&eacute;s",c:"Tapas &middot; World Class",d:"3 min",e:"&#11088;"},{n:"Secret Pizza",c:"Pizza &middot; Hidden Gem",d:"5 min",e:"&#127829;"}],drive:"5.5h drive northwest into the Sierra Nevada"},
+  {id:10,name:"Sequoia NP",sub:"California, USA",dates:"Jun 15&#8211;17",nights:3,type:"park",em:"&#127794;",bg:"#2d5a3d",lat:36.4864,lng:-118.5658,hotel:"Wuksachi Lodge",addr:"64740 Wuksachi Way, Sequoia NP, CA",tmp:"58&#176;F &ndash; 72&#176;F",wx:"Cool under the giant canopy",eats:[{n:"Peaks Restaurant",c:"American &middot; Lodge",d:"2 min",e:"&#127869;"},{n:"The Lodgepole Deli",c:"Deli &middot; Casual",d:"3 min",e:"&#129386;"}],drive:"4.5h north to Yosemite Valley"},
+  {id:11,name:"Yosemite NP",sub:"California, USA",dates:"Jun 18&#8211;21",nights:4,type:"park",em:"&#127956;",bg:"#3a6a4a",lat:37.8651,lng:-119.5383,hotel:"Yosemite Valley Lodge",addr:"9006 Yosemite Valley Lodge Dr, CA",tmp:"62&#176;F &ndash; 78&#176;F",wx:"Waterfalls at peak &mdash; perfect conditions",eats:[{n:"The Ahwahnee Dining Room",c:"American &middot; Historic",d:"5 min",e:"&#127869;"},{n:"Village Grill",c:"Burgers &middot; Casual",d:"3 min",e:"&#127828;"}],drive:"6h south to the Mojave Desert"},
+  {id:12,name:"Joshua Tree NP",sub:"California, USA",dates:"Jun 22&#8211;24",nights:3,type:"park",em:"&#127797;",bg:"#8a7a5a",lat:33.8734,lng:-115.9010,hotel:"Spin &amp; Margie&#39;s Desert Hideaway",addr:"64491 29 Palms Hwy, Joshua Tree, CA",tmp:"88&#176;F &ndash; 105&#176;F",wx:"Stargazing is world-class at night",eats:[{n:"Joshua Tree Coffee Co.",c:"Caf&eacute; &middot; Chill",d:"8 min",e:"&#9749;"},{n:"Pappy &amp; Harriet&#39;s",c:"BBQ &middot; Iconic",d:"20 min",e:"&#127928;"}],drive:"2.5h drive west to the coast"},
+  {id:13,name:"Irvine, CA",sub:"California, USA",dates:"Jun 24",nights:0,type:"city",em:"&#127968;",bg:"#2c5f8a",lat:33.6846,lng:-117.8265,hotel:"Home Sweet Home",addr:"Irvine, California",tmp:"72&#176;F &ndash; 80&#176;F",wx:"Welcome home &mdash; Pacific breeze",eats:[],drive:null}
+];
+
+
+// ── FIREBASE CONFIG ──
 var FIREBASE_CONFIG = {
   apiKey: "AIzaSyCZaHfalFKCPXEkBHIOQIWvrUz3ecJppLI",
   authDomain: "voya-2026.firebaseapp.com",
@@ -824,20 +703,14 @@ var FIREBASE_CONFIG = {
   projectId: "voya-2026",
   storageBucket: "voya-2026.firebasestorage.app",
   messagingSenderId: "364018634656",
-  appId: "1:364018634656:web:40a9176920fed83944dec5",
-  measurementId: "G-GE4ERP27WP"
+  appId: "1:364018634656:web:40a9176920fed83944dec5"
 };
 
-var DB = null;
-var SYNC_ENABLED = false;
+var DB = null, SYNC_ENABLED = false;
 var _syncDebounce = {};
 
 function initFirebase() {
   try {
-    if (FIREBASE_CONFIG.apiKey === "YOUR_API_KEY") {
-      showSyncBanner("not-configured");
-      return;
-    }
     firebase.initializeApp(FIREBASE_CONFIG);
     DB = firebase.database();
     SYNC_ENABLED = true;
@@ -852,1153 +725,827 @@ function initFirebase() {
       }
     });
   } catch(e) {
-    console.error("Firebase init failed:", e);
-    showSyncBanner("error");
+    showSyncBanner("offline");
   }
 }
 
 function showSyncBanner(state) {
   var b = document.getElementById("sync-status");
   if (!b) return;
-  var configs = {
-    "not-configured": { bg: "#f0a500", icon: "⚙️", text: "Set up Firebase to sync with friends →", action: true },
-    "connecting":     { bg: "#3D6B5A", icon: "⏳", text: "Connecting to sync...", action: false },
-    "connected":      { bg: "#2D4A3E", icon: "🟢", text: "Live — syncing with friends", action: false },
-    "offline":        { bg: "#8a5a3a", icon: "🔴", text: "Offline — changes saved locally", action: false },
-    "error":          { bg: "#C4532A", icon: "⚠️", text: "Sync error — check console", action: false },
-    "saving":         { bg: "#2D4A3E", icon: "💾", text: "Saving...", action: false },
+  var map = {
+    "connecting": {bg:"#3D6B5A", icon:"&#9203;", txt:"Connecting..."},
+    "connected":  {bg:"#2D4A3E", icon:"&#128994;", txt:"Live — syncing with friends"},
+    "offline":    {bg:"#8a5a3a", icon:"&#128308;", txt:"Offline — changes saved locally"},
+    "saving":     {bg:"#2D4A3E", icon:"&#128190;", txt:"Saving..."}
   };
-  var cfg = configs[state] || configs["offline"];
+  var cfg = map[state] || map["offline"];
   b.style.background = cfg.bg;
   b.style.display = "flex";
-  b.innerHTML = '<span style="font-size:13px">' + cfg.icon + '</span>' +
-    '<span style="flex:1;font-size:12px;font-weight:500;color:#fff">' + cfg.text + '</span>' +
-    (cfg.action ? '<button onclick="showFirebaseSetup()" style="background:rgba(255,255,255,.25);border:none;border-radius:8px;padding:4px 10px;color:#fff;font-size:11px;font-weight:600;cursor:pointer">Setup</button>' : '');
+  b.innerHTML = '<span style="font-size:13px">' + cfg.icon + '</span><span style="flex:1;font-size:12px;font-weight:500;color:#fff">' + cfg.txt + '</span>';
 }
 
-// ── PUSH data to Firebase (debounced) ──
 function syncPush(path, data) {
-  saveLocal();  // always save locally first
+  saveLocal();
   if (!SYNC_ENABLED || !DB) return;
   clearTimeout(_syncDebounce[path]);
   _syncDebounce[path] = setTimeout(function() {
     showSyncBanner("saving");
     DB.ref("voya/" + path).set(data, function(err) {
-      if (!err) showSyncBanner("connected");
-      else showSyncBanner("error");
+      showSyncBanner(err ? "offline" : "connected");
     });
   }, 600);
 }
 
-// ── PULL all data on connect ──
 function pullAllData() {
   DB.ref("voya").once("value", function(snap) {
-    var data = snap.val();
-    if (!data) return;
-    if (data.stopHotels) stopHotels = data.stopHotels;
-    if (data.stopEats)   stopEats   = data.stopEats;
-    if (data.stopData)   stopData   = data.stopData;
-    if (data.expenses)   restoreExpenses(data.expenses);
-    if (data.categories) { _categories = data.categories; saveCategories(); renderCatSelect(); }
-    // re-render current screen
-    var cur = CURTAB;
-    if (cur === "home")     renderCards("all");
-    if (cur === "route")    renderRouteList();
-    if (cur === "detail")   { renderHotelList(EDIT_STOP); renderEatList(EDIT_STOP); }
+    var d = snap.val(); if (!d) return;
+    if (d.stopHotels) stopHotels = d.stopHotels;
+    if (d.stopEats)   stopEats   = d.stopEats;
+    if (d.stopData)   stopData   = d.stopData;
+    if (d.expenses)   { _expenses = Array.isArray(d.expenses) ? d.expenses : []; }
+    if (d.categories) { _categories = d.categories; saveCategories(); renderCatSelect(); }
+    if (d.payers)     { _payers = d.payers; savePayers(); renderPayerTags(); renderExpFilterRow(); }
+    reRender();
   });
 }
 
-// ── LISTEN for real-time changes ──
 function listenForChanges() {
   DB.ref("voya").on("value", function(snap) {
-    var data = snap.val();
-    if (!data) return;
-    var changed = false;
-    if (data.stopHotels && JSON.stringify(data.stopHotels) !== JSON.stringify(stopHotels)) {
-      stopHotels = data.stopHotels; changed = true;
-    }
-    if (data.stopEats && JSON.stringify(data.stopEats) !== JSON.stringify(stopEats)) {
-      stopEats = data.stopEats; changed = true;
-    }
-    if (data.stopData && JSON.stringify(data.stopData) !== JSON.stringify(stopData)) {
-      stopData = data.stopData; changed = true;
-    }
-    if (data.expenses) restoreExpenses(data.expenses);
-    if (changed) {
-      if (CURTAB === "home")   renderCards("all");
-      if (CURTAB === "route")  renderRouteList();
-      if (CURTAB === "detail") { renderHotelList(EDIT_STOP); renderEatList(EDIT_STOP); }
-    }
+    var d = snap.val(); if (!d) return;
+    if (d.stopHotels) stopHotels = d.stopHotels;
+    if (d.stopEats)   stopEats   = d.stopEats;
+    if (d.stopData)   stopData   = d.stopData;
+    if (d.expenses)   { _expenses = Array.isArray(d.expenses) ? d.expenses : []; }
+    if (d.categories) { _categories = d.categories; renderCatSelect(); }
+    if (d.payers)     { _payers = d.payers; renderPayerTags(); renderExpFilterRow(); }
+    reRender();
   });
 }
 
-// ── Expenses sync helpers ──
-var _expenses = [];  // [{cat, val, time, cls, ico}, ...]
+function reRender() {
+  renderCards("all");
+  renderRouteList();
+  renderExpenseList();
+  updateDonut();
+  if (CURTAB === "detail") { renderHotelList(EDIT_STOP); renderEatList(EDIT_STOP); }
+}
 
-// ── LOCAL STORAGE PERSISTENCE (fallback when offline) ──
+// ── LOCAL STORAGE ──
+var stopHotels = {}, stopEats = {}, stopData = {};
+var _expenses = [];
+
 function saveLocal() {
   try {
-    localStorage.setItem("voya_stopHotels", JSON.stringify(stopHotels));
-    localStorage.setItem("voya_stopEats",   JSON.stringify(stopEats));
-    localStorage.setItem("voya_stopData",   JSON.stringify(stopData));
-    localStorage.setItem("voya_expenses",   JSON.stringify(_expenses));
+    localStorage.setItem("voya_sh", JSON.stringify(stopHotels));
+    localStorage.setItem("voya_se", JSON.stringify(stopEats));
+    localStorage.setItem("voya_sd", JSON.stringify(stopData));
+    localStorage.setItem("voya_ex", JSON.stringify(_expenses));
+    localStorage.setItem("voya_cats", JSON.stringify(_categories));
+    localStorage.setItem("voya_payers", JSON.stringify(_payers));
   } catch(e) {}
-}
-
-// ── SPENDING CATEGORIES ──
-var _categories = ["Food & Drink","Fuel","Lodging","Fees & Entry","Misc"];
-var _catIcons = {"Food & Drink":"&#127869;","Fuel":"&#9981;&#65039;","Lodging":"&#128716;","Fees & Entry":"&#127903;","Misc":"&#128204;"};
-
-function loadCategories() {
-  try {
-    var saved = localStorage.getItem("voya_categories");
-    if (saved) _categories = JSON.parse(saved);
-  } catch(e) {}
-  renderCatSelect();
-}
-function saveCategories() {
-  localStorage.setItem("voya_categories", JSON.stringify(_categories));
-  if (SYNC_ENABLED && DB) DB.ref("voya/categories").set(_categories);
-}
-function renderCatSelect() {
-  var sel = document.getElementById("exp-cat");
-  if (!sel) return;
-  sel.innerHTML = "";
-  _categories.forEach(function(cat) {
-    var opt = document.createElement("option");
-    opt.value = cat; opt.textContent = cat;
-    sel.appendChild(opt);
-  });
-}
-function showCatManager() {
-  renderCatList();
-  document.getElementById("modal-cat").classList.remove("hidden");
-}
-function renderCatList() {
-  var el = document.getElementById("cat-list");
-  el.innerHTML = "";
-  _categories.forEach(function(cat, i) {
-    var row = document.createElement("div");
-    row.style.cssText = "display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--cd)";
-    var ico = _catIcons[cat] || "&#127991;";
-    row.innerHTML = '<span style="font-size:18px;width:28px;text-align:center">' + ico + '</span>' +
-      '<span style="flex:1;font-size:14px;font-weight:500">' + cat + '</span>';
-    var del = document.createElement("button");
-    del.style.cssText = "width:28px;height:28px;background:#fff0ee;border:none;border-radius:50%;cursor:pointer;font-size:13px;color:var(--ru)";
-    del.innerHTML = "&#10005;";
-    del.onclick = (function(idx){ return function() {
-      _categories.splice(idx, 1);
-      saveCategories();
-      renderCatList();
-      renderCatSelect();
-    };})(i);
-    row.appendChild(del);
-    el.appendChild(row);
-  });
-}
-function addCategory() {
-  var inp = document.getElementById("new-cat-input");
-  var val = inp.value.trim();
-  if (!val || _categories.indexOf(val) >= 0) return;
-  _categories.push(val);
-  saveCategories();
-  renderCatList();
-  renderCatSelect();
-  inp.value = "";
 }
 
 function loadLocal() {
   try {
-    var h = localStorage.getItem("voya_stopHotels");
-    var e = localStorage.getItem("voya_stopEats");
-    var d = localStorage.getItem("voya_stopData");
-    var ex = localStorage.getItem("voya_expenses");
-    if (h) stopHotels = JSON.parse(h);
-    if (e) stopEats   = JSON.parse(e);
-    if (d) stopData   = JSON.parse(d);
-    if (ex) { _expenses = JSON.parse(ex); restoreExpenses(_expenses); }
+    var sh = localStorage.getItem("voya_sh"); if (sh) stopHotels = JSON.parse(sh);
+    var se = localStorage.getItem("voya_se"); if (se) stopEats   = JSON.parse(se);
+    var sd = localStorage.getItem("voya_sd"); if (sd) stopData   = JSON.parse(sd);
+    var ex = localStorage.getItem("voya_ex"); if (ex) _expenses  = JSON.parse(ex);
+    var ca = localStorage.getItem("voya_cats"); if (ca) _categories = JSON.parse(ca);
+    var py = localStorage.getItem("voya_payers"); if (py) _payers = JSON.parse(py);
   } catch(e) {}
 }
 
+// ── PER-STOP DATA ──
+var EDIT_STOP = 0;
 
-function syncExpenseAdd(cat, val, cls, ico, timeStr, desc, payer) {
-  var entry = {cat:cat, val:val, cls:cls, ico:ico, time:timeStr, id: Date.now(), desc:desc||"", payer:payer||""};
-  _expenses.unshift(entry);
-  syncPush("expenses", _expenses);
-}
-function syncExpenseDel(id) {
-  _expenses = _expenses.filter(function(e){ return e.id !== id; });
-  syncPush("expenses", _expenses);
-}
-function restoreExpenses(data) {
-  if (!Array.isArray(data)) return;
-  _expenses = data;
-  setTimeout(updateDonut, 100);
-  var lst = document.getElementById("expense-list");
-  if (!lst) return;
-  lst.innerHTML = "";
-  if (!data.length) {
-    var ph = document.createElement("div");
-    ph.style.cssText = "text-align:center;padding:24px 0;color:var(--tl);font-size:13px";
-    ph.textContent = "No expenses yet — start tracking!";
-    lst.appendChild(ph);
-    return;
-  }
-  data.forEach(function(entry) { renderExpenseItem(lst, entry, false); });
-}
-
-function renderExpenseItem(lst, entry, prepend) {
-  var el = document.createElement("div");
-  el.className = "exitem";
-  el.style.cssText = "display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--cd);position:relative";
-
-  var ico = document.createElement("div");
-  ico.className = "exico " + entry.cls;
-  ico.innerHTML = entry.ico;
-
-  var info = document.createElement("div");
-  info.style.flex = "1";
-  var dn = entry.desc || entry.cat;
-  var line2parts = [];
-  if (entry.payer) line2parts.push(entry.payer);
-  if (entry.desc) line2parts.push(entry.cat);
-  var line2 = line2parts.length ? line2parts.join(' · ') : entry.cat;
-  info.innerHTML = '<div style="font-size:14px;font-weight:600;color:var(--td)">' + dn +
-    ' <span style="font-weight:400;color:var(--tl);font-size:12px">· ' + entry.time + '</span></div>' +
-    '<div style="font-size:11px;color:var(--tl);margin-top:3px">' + line2 + "</div>";
-
-  var amt = document.createElement("div");
-  amt.style.cssText = "font-size:15px;font-weight:700";
-  amt.innerHTML = "&minus;$" + parseFloat(entry.val).toFixed(2);
-
-  var delBtn = document.createElement("button");
-  delBtn.style.cssText = "width:26px;height:26px;background:#fff0ee;border:none;border-radius:50%;cursor:pointer;font-size:13px;color:var(--ru);display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0";
-  delBtn.innerHTML = "&#10005;";
-  delBtn.onclick = (function(id, elem) { return function() {
-    elem.style.transition = "opacity .2s";
-    elem.style.opacity = "0";
-    setTimeout(function() {
-      elem.remove();
-      syncExpenseDel(id);
-      var l = document.getElementById("expense-list");
-      if (l && !l.children.length) {
-        var ph = document.createElement("div");
-        ph.style.cssText = "text-align:center;padding:24px 0;color:var(--tl);font-size:13px";
-        ph.textContent = "No expenses yet — start tracking!";
-        l.appendChild(ph);
-      }
-    }, 200);
-  };})(entry.id, el);
-
-  el.appendChild(ico); el.appendChild(info); el.appendChild(amt); el.appendChild(delBtn);
-  if (prepend) lst.insertBefore(el, lst.firstChild);
-  else lst.appendChild(el);
-}
-
-// ── Firebase Setup Modal ──
-function showFirebaseSetup() {
-  document.getElementById("modal-firebase").classList.remove("hidden");
-}
-function saveFirebaseConfig() {
-  var cfg = {
-    apiKey:            document.getElementById("fb-apiKey").value.trim(),
-    authDomain:        document.getElementById("fb-authDomain").value.trim(),
-    databaseURL:       document.getElementById("fb-databaseURL").value.trim(),
-    projectId:         document.getElementById("fb-projectId").value.trim(),
-    storageBucket:     document.getElementById("fb-storageBucket").value.trim(),
-    messagingSenderId: document.getElementById("fb-messagingSenderId").value.trim(),
-    appId:             document.getElementById("fb-appId").value.trim()
-  };
-  if (!cfg.apiKey || !cfg.databaseURL) {
-    alert("API Key and Database URL are required.");
-    return;
-  }
-  // Store in localStorage so it persists
-  localStorage.setItem("voya_fb_config", JSON.stringify(cfg));
-  FIREBASE_CONFIG = cfg;
-  closeModal("modal-firebase");
-  location.reload();
-}
-
-var STOPS=[
-  {id:0,name:"Rochester, NY",sub:"New York, USA",dates:"Jun 1",nights:1,type:"city",em:"&#127961;",bg:"#3d5a7a",lat:43.1566,lng:-77.6088,hotel:"Hilton Garden Inn Rochester",addr:"235 East Main St, Rochester, NY",tmp:"65&#176;F &ndash; 73&#176;F",wx:"Partly cloudy, great for city walks",eats:[{n:"Dinosaur Bar-B-Que",c:"BBQ &middot; Casual",d:"4 min",e:"&#127830;"},{n:"The Owl House",c:"American &middot; Trendy",d:"7 min",e:"&#129417;"}],drive:"5h drive west on I-90"},
-  {id:1,name:"Columbus, OH",sub:"Ohio, USA",dates:"Jun 2",nights:1,type:"city",em:"&#127963;",bg:"#5a7a4a",lat:39.9612,lng:-82.9988,hotel:"Sonesta Columbus Downtown",addr:"33 E Nationwide Blvd, Columbus, OH",tmp:"68&#176;F &ndash; 76&#176;F",wx:"Sunny with light breeze",eats:[{n:"The Pearl",c:"Seafood &middot; Upscale",d:"5 min",e:"&#129450;"},{n:"North Market",c:"Market &middot; Casual",d:"3 min",e:"&#127829;"}],drive:"6h drive southwest on I-70"},
-  {id:2,name:"St. Louis, MO",sub:"Missouri, USA",dates:"Jun 3",nights:1,type:"city",em:"&#127781;",bg:"#7a5a3a",lat:38.6270,lng:-90.1994,hotel:"Four Seasons St. Louis",addr:"999 N 2nd St, St. Louis, MO",tmp:"72&#176;F &ndash; 82&#176;F",wx:"Warm &amp; sunny &mdash; perfect for the Arch",eats:[{n:"Pappy's Smokehouse",c:"BBQ &middot; Iconic",d:"8 min",e:"&#128293;"},{n:"Ices Plain &amp; Fancy",c:"Dessert &middot; Fun",d:"6 min",e:"&#127846;"}],drive:"4h drive west on I-70"},
-  {id:3,name:"Kansas City, MO",sub:"Missouri, USA",dates:"Jun 4",nights:1,type:"city",em:"&#127929;",bg:"#6a7a3a",lat:39.0997,lng:-94.5786,hotel:"Hotel Kansas City",addr:"1228 Baltimore Ave, Kansas City, MO",tmp:"70&#176;F &ndash; 80&#176;F",wx:"Clear skies, mild winds",eats:[{n:"Joe's Kansas City BBQ",c:"BBQ &middot; World Famous",d:"12 min",e:"&#127830;"},{n:"Columbus Park Ramen",c:"Ramen &middot; Hip",d:"9 min",e:"&#127836;"}],drive:"4h drive west on I-70"},
-  {id:4,name:"Hays, KS",sub:"Kansas, USA",dates:"Jun 5",nights:1,type:"city",em:"&#127807;",bg:"#7a8a5a",lat:38.8790,lng:-99.3268,hotel:"Hampton Inn Hays",addr:"4002 General Hays Rd, Hays, KS",tmp:"75&#176;F &ndash; 88&#176;F",wx:"Wide open skies, Great Plains winds",eats:[{n:"Thirsty's",c:"American &middot; Lively",d:"6 min",e:"&#127828;"},{n:"Gutierrez Restaurant",c:"Mexican &middot; Local",d:"5 min",e:"&#127790;"}],drive:"4h drive west, enter the Rockies"},
-  {id:5,name:"Denver, CO",sub:"Colorado, USA",dates:"Jun 6&#8211;7",nights:2,type:"city",em:"&#127956;",bg:"#5a7a8a",lat:39.7392,lng:-104.9903,hotel:"The Brown Palace Hotel",addr:"321 17th St, Denver, CO",tmp:"60&#176;F &ndash; 75&#176;F",wx:"Mile High sunshine &mdash; layer up in AM",eats:[{n:"Mercantile Dining",c:"American &middot; Farm-to-table",d:"10 min",e:"&#129367;"},{n:"Tacos Tequila Whiskey",c:"Mexican &middot; Hip",d:"7 min",e:"&#127790;"}],drive:"4h drive west on I-70 through the Rockies"},
-  {id:6,name:"Grand Junction, CO",sub:"Colorado, USA",dates:"Jun 8",nights:1,type:"city",em:"&#9968;",bg:"#8a6a3a",lat:39.0639,lng:-108.5506,hotel:"Doubletree Grand Junction",addr:"743 Horizon Dr, Grand Junction, CO",tmp:"80&#176;F &ndash; 95&#176;F",wx:"Hot and sunny &mdash; stay hydrated",eats:[{n:"626 on Rood",c:"American &middot; Fine Dining",d:"8 min",e:"&#127863;"},{n:"Pablo's Pizza",c:"Pizza &middot; Casual",d:"5 min",e:"&#127829;"}],drive:"2h drive into Utah canyon country"},
-  {id:7,name:"Arches NP",sub:"Moab, Utah, USA",dates:"Jun 9&#8211;10",nights:2,type:"park",em:"&#127964;",bg:"#c4532a",lat:38.7331,lng:-109.5925,hotel:"Moab Under Canvas",addr:"13784 US-191, Moab, UT",tmp:"85&#176;F &ndash; 100&#176;F",wx:"Desert heat &mdash; hike early morning",eats:[{n:"Desert Bistro",c:"American &middot; Upscale",d:"15 min",e:"&#127869;"},{n:"Moab Brewery",c:"Pub &middot; Casual",d:"12 min",e:"&#127866;"}],drive:"4.5h drive southwest through canyon lands"},
-  {id:8,name:"Bryce Canyon NP",sub:"Utah, USA",dates:"Jun 11&#8211;12",nights:2,type:"park",em:"&#129505;",bg:"#e8856a",lat:37.5930,lng:-112.1871,hotel:"The Lodge at Bryce Canyon",addr:"Bryce Canyon City, UT 84764",tmp:"65&#176;F &ndash; 80&#176;F",wx:"Cool at rim &mdash; hoodoos glow at sunrise",eats:[{n:"Bryce Canyon Dining Room",c:"American &middot; Classic",d:"2 min",e:"&#127869;"},{n:"Valhalla Pizzeria",c:"Pizza &middot; Casual",d:"5 min",e:"&#127829;"}],drive:"4h drive southwest to the neon desert"},
-  {id:9,name:"Las Vegas, NV",sub:"Nevada, USA",dates:"Jun 13&#8211;14",nights:2,type:"city",em:"&#127920;",bg:"#1a1a2a",lat:36.1699,lng:-115.1398,hotel:"The Venetian Resort",addr:"3355 Las Vegas Blvd S, Las Vegas, NV",tmp:"95&#176;F &ndash; 108&#176;F",wx:"Desert heat &mdash; stay in A/C midday",eats:[{n:"&eacute; by Jos&eacute; Andr&eacute;s",c:"Tapas &middot; World Class",d:"3 min",e:"&#11088;"},{n:"Secret Pizza",c:"Pizza &middot; Hidden Gem",d:"5 min",e:"&#127829;"}],drive:"5.5h drive northwest into the Sierra Nevada"},
-  {id:10,name:"Sequoia NP",sub:"California, USA",dates:"Jun 15&#8211;17",nights:3,type:"park",em:"&#127794;",bg:"#2d5a3d",lat:36.4864,lng:-118.5658,hotel:"Wuksachi Lodge",addr:"64740 Wuksachi Way, Sequoia NP, CA",tmp:"58&#176;F &ndash; 72&#176;F",wx:"Cool under the giant canopy",eats:[{n:"Peaks Restaurant",c:"American &middot; Lodge",d:"2 min",e:"&#127869;"},{n:"The Lodgepole Deli",c:"Deli &middot; Casual",d:"3 min",e:"&#129386;"}],drive:"4.5h north to Yosemite Valley"},
-  {id:11,name:"Yosemite NP",sub:"California, USA",dates:"Jun 18&#8211;21",nights:4,type:"park",em:"&#127956;",bg:"#3a6a4a",lat:37.8651,lng:-119.5383,hotel:"Yosemite Valley Lodge",addr:"9006 Yosemite Valley Lodge Dr, CA",tmp:"62&#176;F &ndash; 78&#176;F",wx:"Waterfalls at peak &mdash; perfect conditions",eats:[{n:"The Ahwahnee Dining Room",c:"American &middot; Historic",d:"5 min",e:"&#127869;"},{n:"Village Grill",c:"Burgers &middot; Casual",d:"3 min",e:"&#127828;"}],drive:"6h south to the Mojave Desert"},
-  {id:12,name:"Joshua Tree NP",sub:"California, USA",dates:"Jun 22&#8211;24",nights:3,type:"park",em:"&#127797;",bg:"#8a7a5a",lat:33.8734,lng:-115.9010,hotel:"Spin &amp; Margie's Desert Hideaway",addr:"64491 29 Palms Hwy, Joshua Tree, CA",tmp:"88&#176;F &ndash; 105&#176;F",wx:"Stargazing is world-class at night",eats:[{n:"Joshua Tree Coffee Co.",c:"Caf&eacute; &middot; Chill",d:"8 min",e:"&#9749;"},{n:"Pappy &amp; Harriet's",c:"BBQ &middot; Iconic",d:"20 min",e:"&#127928;"}],drive:"2.5h drive west to the coast"},
-  {id:13,name:"Irvine, CA",sub:"California, USA",dates:"Jun 24",nights:0,type:"city",em:"&#127968;",bg:"#2c5f8a",lat:33.6846,lng:-117.8265,hotel:"Home Sweet Home",addr:"Irvine, California",tmp:"72&#176;F &ndash; 80&#176;F",wx:"Welcome home &mdash; Pacific breeze",eats:[],drive:null}
-];
-
-var IMG={}, CUR=0;
-
-
-// ── PER-STOP CUSTOM DATA ──
-var stopHotels={};
-var stopEats={};
-var stopData={};  // per-stop overrides: {name, addr, nights}
-
-function getStopData(sid){
-  if(!stopData[sid]){
-    var s=STOPS[sid];
-    stopData[sid]={name:s.name, addr:s.addr||s.name+", "+s.sub, nights:s.nights};
+function getStopData(sid) {
+  if (!stopData[sid]) {
+    var s = STOPS[sid];
+    stopData[sid] = {name: s.name, addr: s.addr, nights: s.nights};
   }
   return stopData[sid];
 }
-var EDIT_STOP=0;
 
-function getHotels(sid){
-  if(!stopHotels[sid]){
-    var s=STOPS[sid];
-    stopHotels[sid]=[{name:s.hotel,addr:s.addr,checkin:s.dates,nights:s.nights,room:"Standard Room",conf:"HTL-"+sid+"00001",status:"Upcoming"}];
+function getHotels(sid) {
+  if (!stopHotels[sid]) {
+    var s = STOPS[sid];
+    stopHotels[sid] = [{name:s.hotel, addr:s.addr, checkin:s.dates, nights:s.nights, room:"Standard Room", conf:"HTL-"+sid+"00001", status:"Upcoming", checkin_time:"After 3:00 PM", checkout_time:"By 11:00 AM"}];
   }
   return stopHotels[sid];
 }
-function getEats(sid){
-  if(!stopEats[sid]){
-    stopEats[sid]=STOPS[sid].eats.map(function(e){return{n:e.n,c:e.c,d:e.d,price:"$$$",e:e.e,desc:"A beloved local dining spot."};});
+
+function getEats(sid) {
+  if (!stopEats[sid]) {
+    stopEats[sid] = STOPS[sid].eats.map(function(e) {
+      return {n:e.n, c:e.c, d:e.d, price:"$$$", e:e.e, desc:"A beloved local dining spot."};
+    });
   }
   return stopEats[sid];
 }
 
-function renderHotelList(sid){
-  var hotels=getHotels(sid);
-  var c=document.getElementById("d-hotels-list");
-  if(!c)return;
-  c.innerHTML="";
-  hotels.forEach(function(h,i2){
-    var div=document.createElement("div");
-    div.className="item-card-row";
-    var nights=h.nights+' night'+(h.nights>1?'s':'');
-    var editBtn=document.createElement("button");
-    editBtn.className="item-card-edit";
-    editBtn.innerHTML="&#9998;";
-    editBtn.onclick=(function(ix){return function(){editHotel(ix);};})(i2);
-    var goBtn=document.createElement("button");
-    goBtn.className="item-card-edit";
-    goBtn.style.color="var(--gd)";
-    goBtn.innerHTML="&#62;";
-    goBtn.onclick=(function(si,ix){return function(){openHotelDetailDirect(si,ix);};})(sid,i2);
-    var info=document.createElement("div");
-    info.className="item-card-info";
-    info.innerHTML='<div class="item-card-name">'+h.name+'</div><div class="item-card-sub">'+h.checkin+' &middot; '+nights+'</div>';
-    var ico=document.createElement("div");
-    ico.className="item-card-ico";
-    ico.innerHTML="&#127968;";
-    div.appendChild(ico);
-    div.appendChild(info);
-    div.appendChild(editBtn);
-    div.appendChild(goBtn);
-    c.appendChild(div);
-  });
-}
+// ── STOP CARDS (Home) ──
+var IMG = {}, CURTAB = "home";
 
-function renderEatList(sid){
-  var eats=getEats(sid);
-  var c=document.getElementById("d-eats");
-  if(!c)return;
-  c.innerHTML="";
-  eats.forEach(function(e,i2){
-    var wrap=document.createElement("div");
-    wrap.style.cssText="min-width:150px;background:var(--wh);border-radius:18px;overflow:hidden;box-shadow:var(--sh);flex-shrink:0;cursor:pointer;position:relative";
-    wrap.onclick=(function(si,ei){return function(){openRestDetailDirect(si,ei);};})(sid,i2);
-
-    // image area
-    var imgArea=document.createElement("div");
-    imgArea.style.cssText="height:100px;background:var(--gd);display:flex;align-items:center;justify-content:center;font-size:36px;position:relative";
-    imgArea.textContent=e.e;
-    var editBtn=document.createElement("button");
-    editBtn.style.cssText="position:absolute;top:6px;right:6px;width:26px;height:26px;background:rgba(255,255,255,.9);border:none;border-radius:50%;cursor:pointer;font-size:12px";
-    editBtn.innerHTML="&#9998;";
-    editBtn.onclick=(function(ix){return function(ev){ev.stopPropagation();editEat(ix);};})(i2);
-    imgArea.appendChild(editBtn);
-
-    // text area
-    var txtArea=document.createElement("div");
-    txtArea.style.cssText="padding:10px 12px";
-    var nm=document.createElement("div");
-    nm.style.cssText="font-size:13px;font-weight:700";
-    nm.textContent=e.n;
-    var ct=document.createElement("div");
-    ct.style.cssText="font-size:11px;color:var(--tl);margin-top:2px";
-    ct.textContent=e.c;
-    txtArea.appendChild(nm);txtArea.appendChild(ct);
-
-    // footer
-    var ftr=document.createElement("div");
-    ftr.style.cssText="padding:4px 12px 10px;display:flex;align-items:center;justify-content:space-between";
-    var dist=document.createElement("span");
-    dist.style.cssText="font-size:11px;color:var(--tm)";
-    dist.innerHTML="&#128663; "+e.d;
-    var ava=document.createElement("div");
-    ava.style.cssText="width:24px;height:24px;border-radius:50%;background:var(--gd);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center";
-    ava.textContent="C";
-    ftr.appendChild(dist);ftr.appendChild(ava);
-
-    wrap.appendChild(imgArea);wrap.appendChild(txtArea);wrap.appendChild(ftr);
-    c.appendChild(wrap);
-  });
-}
-
-// ── MODAL HELPERS ──
-
-
-// ── NOMINATIM ADDRESS / PLACE SEARCH ──
-var _searchTimers={};
-
-function addrSearch(inputId, resultsId){
-  var val=document.getElementById(inputId).value.trim();
-  clearTimeout(_searchTimers[inputId]);
-  var res=document.getElementById(resultsId);
-  if(val.length<3){res.classList.add("hidden");return;}
-  _searchTimers[inputId]=setTimeout(function(){
-    var spin=document.getElementById(inputId+"-spin");
-    if(spin)spin.style.display="block";
-    fetch("https://nominatim.openstreetmap.org/search?format=json&limit=5&addressdetails=1&q="+encodeURIComponent(val),{headers:{"Accept-Language":"en"}})
-      .then(function(r){return r.json();})
-      .then(function(data){
-        if(spin)spin.style.display="none";
-        res.innerHTML="";
-        if(!data.length){res.classList.add("hidden");return;}
-        data.forEach(function(item){
-          var d=document.createElement("div");
-          d.className="addr-result-item";
-          var parts=item.display_name.split(",");
-          var main=parts.slice(0,2).join(",").trim();
-          var sub=parts.slice(2,5).join(",").trim();
-          d.innerHTML='<div class="addr-result-main">'+main+'</div><div class="addr-result-sub">'+sub+'</div>';
-          d.onclick=(function(name,full){return function(){
-            document.getElementById(inputId).value=full;
-            res.classList.add("hidden");
-          };})(main, item.display_name);
-          res.appendChild(d);
-        });
-        res.classList.remove("hidden");
-      }).catch(function(){if(spin)spin.style.display="none";});
-  },400);
-}
-
-function nameSearch(inputId, resultsId, addrTargetId){
-  var val=document.getElementById(inputId).value.trim();
-  clearTimeout(_searchTimers[inputId]);
-  var res=document.getElementById(resultsId);
-  if(val.length<2){res.classList.add("hidden");return;}
-  _searchTimers[inputId]=setTimeout(function(){
-    var spin=document.getElementById(inputId+"-spin");
-    if(spin)spin.style.display="block";
-    // Search with amenity tag for better results
-    var q=val;
-    fetch("https://nominatim.openstreetmap.org/search?format=json&limit=6&addressdetails=1&q="+encodeURIComponent(q),{headers:{"Accept-Language":"en"}})
-      .then(function(r){return r.json();})
-      .then(function(data){
-        if(spin)spin.style.display="none";
-        res.innerHTML="";
-        if(!data.length){res.classList.add("hidden");return;}
-        data.forEach(function(item){
-          var d=document.createElement("div");
-          d.className="addr-result-item";
-          var parts=item.display_name.split(",");
-          var main=parts[0].trim();
-          var sub=parts.slice(1,4).join(",").trim();
-          d.innerHTML='<div class="addr-result-main">'+main+'</div><div class="addr-result-sub">'+sub+'</div>';
-          d.onclick=(function(nm,full,addr){return function(){
-            document.getElementById(inputId).value=nm;
-            if(addrTargetId){
-              var t=document.getElementById(addrTargetId);
-              if(t)t.value=addr;
-            }
-            res.classList.add("hidden");
-          };})(main, item.display_name, item.display_name);
-          res.appendChild(d);
-        });
-        res.classList.remove("hidden");
-      }).catch(function(){if(spin)spin.style.display="none";});
-  },400);
-}
-
-// Close dropdowns when clicking outside
-document.addEventListener("click",function(e){
-  document.querySelectorAll(".addr-results").forEach(function(r){
-    if(!r.parentElement.contains(e.target))r.classList.add("hidden");
-  });
-});
-
-
-function showShareInfo(){
-  var b=document.getElementById("share-banner");
-  if(b)b.style.display=b.style.display==="none"?"block":"none";
-}
-
-function openEditStop(idx){
-  var sd=getStopData(idx);
-  document.getElementById("ms-stop-idx").value=idx;
-  document.getElementById("ms-name").value=sd.name;
-  document.getElementById("ms-addr").value=sd.addr;
-  document.getElementById("ms-nights").value=sd.nights;
-  document.getElementById("modal-stop").classList.remove("hidden");
-}
-
-
-function saveHotelDetail(){
-  var sid=parseInt(document.getElementById("hdd-sid").value);
-  var hidx=parseInt(document.getElementById("hdd-hidx").value);
-  var hotels=getHotels(sid);
-  if(!hotels[hidx])return;
-  var h=hotels[hidx];
-  h.checkin=document.getElementById("hdd-dates").value||h.checkin;
-  h.room=document.getElementById("hdd-room").value||h.room;
-  h.conf=document.getElementById("hdd-conf").value||h.conf;
-  h.checkin_time=document.getElementById("hdd-checkin").value||h.checkin_time;
-  h.checkout_time=document.getElementById("hdd-checkout").value||h.checkout_time;
-  // update nights display
-  var dn=h.nights>0?h.nights+" Night"+(h.nights>1?"s":""):"—";
-  document.getElementById("hdd-nights").textContent=dn;
-  // flash save confirmation
-  var btn=event.target;
-  btn.textContent="&#10003; Saved!";
-  setTimeout(function(){btn.innerHTML="&#10003; Save Changes";},1500);
-  renderHotelList(sid);
-  syncPush("stopHotels", stopHotels);
-}
-
-function saveStop(){
-  var idx=parseInt(document.getElementById("ms-stop-idx").value);
-  var sd=getStopData(idx);
-  sd.name=document.getElementById("ms-name").value||sd.name;
-  sd.addr=document.getElementById("ms-addr").value||sd.addr;
-  sd.nights=parseInt(document.getElementById("ms-nights").value)||0;
-  stopData[idx]=sd;
-  renderRouteList();
-  renderCards("all");
-  syncPush("stopData", stopData);
-  closeModal("modal-stop");
-}
-
-function closeModal(id){document.getElementById(id).classList.add("hidden");}
-
-function showAddHotel(){
-  document.getElementById("modal-hotel-title").textContent="Add Hotel";
-  document.getElementById("mh-edit-idx").value="-1";
-  document.getElementById("mh-name").value="";
-  document.getElementById("mh-addr").value="";
-  document.getElementById("mh-checkin").value="";
-  document.getElementById("mh-nights").value="1";
-  document.getElementById("mh-room").value="";
-  document.getElementById("mh-conf").value="";
-  document.getElementById("mh-status").value="Upcoming";
-  document.getElementById("mh-del-btn").style.display="none";
-  document.getElementById("modal-hotel").classList.remove("hidden");
-}
-
-function editHotel(idx){
-  var h=getHotels(EDIT_STOP)[idx];
-  document.getElementById("modal-hotel-title").textContent="Edit Hotel";
-  document.getElementById("mh-edit-idx").value=idx;
-  document.getElementById("mh-name").value=h.name;
-  document.getElementById("mh-addr").value=h.addr;
-  document.getElementById("mh-checkin").value=h.checkin;
-  document.getElementById("mh-nights").value=h.nights;
-  document.getElementById("mh-room").value=h.room;
-  document.getElementById("mh-conf").value=h.conf;
-  document.getElementById("mh-status").value=h.status;
-  document.getElementById("mh-del-btn").style.display="block";
-  document.getElementById("modal-hotel").classList.remove("hidden");
-}
-
-function saveHotel(){
-  var idx=parseInt(document.getElementById("mh-edit-idx").value);
-  var h={
-    name:document.getElementById("mh-name").value||"My Hotel",
-    addr:document.getElementById("mh-addr").value||"",
-    checkin:document.getElementById("mh-checkin").value||"",
-    nights:parseInt(document.getElementById("mh-nights").value)||1,
-    room:document.getElementById("mh-room").value||"Standard Room",
-    conf:document.getElementById("mh-conf").value||"HTL-XXXXX",
-    status:document.getElementById("mh-status").value
-  };
-  var list=getHotels(EDIT_STOP);
-  if(idx>=0){list[idx]=h;}else{list.push(h);}
-  renderHotelList(EDIT_STOP);
-  syncPush("stopHotels", stopHotels);
-  closeModal("modal-hotel");
-}
-
-function deleteHotel(){
-  var idx=parseInt(document.getElementById("mh-edit-idx").value);
-  var list=getHotels(EDIT_STOP);
-  if(idx>=0)list.splice(idx,1);
-  renderHotelList(EDIT_STOP);
-  syncPush("stopHotels", stopHotels);
-  closeModal("modal-hotel");
-}
-
-function showAddEat(){
-  document.getElementById("modal-eat-title").textContent="Add Restaurant";
-  document.getElementById("me-edit-idx").value="-1";
-  document.getElementById("me-name").value="";
-  document.getElementById("me-cat").value="";
-  document.getElementById("me-dist").value="";
-  document.getElementById("me-price").value="$$$";
-  document.getElementById("me-emoji").value="";
-  document.getElementById("me-desc").value="";
-  document.getElementById("me-del-btn").style.display="none";
-  document.getElementById("modal-eat").classList.remove("hidden");
-}
-
-function editEat(idx){
-  var e=getEats(EDIT_STOP)[idx];
-  document.getElementById("modal-eat-title").textContent="Edit Restaurant";
-  document.getElementById("me-edit-idx").value=idx;
-  document.getElementById("me-name").value=e.n;
-  document.getElementById("me-cat").value=e.c;
-  document.getElementById("me-dist").value=e.d;
-  document.getElementById("me-price").value=e.price||"$$$";
-  document.getElementById("me-emoji").value=e.e;
-  document.getElementById("me-desc").value=e.desc||"";
-  document.getElementById("me-del-btn").style.display="block";
-  document.getElementById("modal-eat").classList.remove("hidden");
-}
-
-function saveEat(){
-  var idx=parseInt(document.getElementById("me-edit-idx").value);
-  var e={
-    n:document.getElementById("me-name").value||"Restaurant",
-    c:document.getElementById("me-cat").value||"Food",
-    d:document.getElementById("me-dist").value||"10 min",
-    price:document.getElementById("me-price").value||"$$$",
-    e:document.getElementById("me-emoji").value||"&#127869;",
-    desc:document.getElementById("me-desc").value||""
-  };
-  var list=getEats(EDIT_STOP);
-  if(idx>=0){list[idx]=e;}else{list.push(e);}
-  renderEatList(EDIT_STOP);
-  syncPush("stopEats", stopEats);
-  closeModal("modal-eat");
-}
-
-function deleteEat(){
-  var idx=parseInt(document.getElementById("me-edit-idx").value);
-  var list=getEats(EDIT_STOP);
-  if(idx>=0)list.splice(idx,1);
-  renderEatList(EDIT_STOP);
-  syncPush("stopEats", stopEats);
-  closeModal("modal-eat");
-}
-
-function openHotelDetailDirect(sid,idx){
-  var hotels=getHotels(sid);
-  if(!hotels||!hotels.length)return;
-  var h=hotels[Math.min(idx,hotels.length-1)];
-  var s=STOPS[sid];
-  document.getElementById("hdd-sid").value=sid;
-  document.getElementById("hdd-hidx").value=idx;
-  document.getElementById("hdd-hero-inner").style.background=s.bg;
-  document.getElementById("hdd-name").textContent=h.name;
-  document.getElementById("hdd-loc").textContent=h.addr;
-  document.getElementById("hdd-dates").value=h.checkin||s.dates;
-  var dn=h.nights>0?h.nights+" Night"+(h.nights>1?"s":""):"—";
-  document.getElementById("hdd-nights").textContent=dn;
-  document.getElementById("hdd-room").value=h.room||"Standard Room";
-  document.getElementById("hdd-conf").value=h.conf||"";
-  document.getElementById("hdd-checkin").value=h.checkin_time||"After 3:00 PM";
-  document.getElementById("hdd-checkout").value=h.checkout_time||"By 11:00 AM";
-  document.getElementById("hdd-status").textContent=(h.status||"Upcoming").toUpperCase();
-  initMiniMap("hdd-map",s.lat,s.lng,h.name);
-  document.querySelectorAll(".screen").forEach(function(sc){sc.classList.remove("active");});
-  document.getElementById("s-hotel-detail").classList.add("active");
-  document.getElementById("s-hotel-detail").scrollTop=0;
-  CURTAB="hotel-detail";
-}
-
-function openRestDetailDirect(sid,idx){
-  var e=getEats(sid)[idx];
-  var s=STOPS[sid];
-  document.getElementById("rdd-hero-inner").style.background=s.bg;
-  document.getElementById("rdd-name").textContent=e.n;
-  document.getElementById("rdd-type").innerHTML=e.c;
-  document.getElementById("rdd-rating").textContent="4.8";
-  document.getElementById("rdd-dist").textContent=e.d;
-  document.getElementById("rdd-price").textContent=e.price||"$$$";
-  document.getElementById("rdd-status").textContent="Open";
-  document.getElementById("rdd-desc").textContent=e.desc||"A great dining spot on your road trip.";
-  document.getElementById("rdd-address").textContent=s.addr;
-  document.getElementById("rdd-address-sub").textContent="Near "+s.name;
-  document.getElementById("rdd-reservation").innerHTML="&#128197; Reservation available";
-  initMiniMap("rdd-map",s.lat+0.002,s.lng+0.002,e.n);
-  document.querySelectorAll(".screen").forEach(function(sc){sc.classList.remove("active");});
-  document.getElementById("s-rest-detail").classList.add("active");
-  document.getElementById("s-rest-detail").scrollTop=0;
-  CURTAB="rest-detail";
-}
-
-function renderCards(filter){
-  var c=document.getElementById("stops-scroll");
-  c.innerHTML="";
-  STOPS.forEach(function(s){
-    if(filter!=="all"&&s.type!==filter) return;
-    var d=document.createElement("div");
-    d.className="scrd";
-    d.onclick=(function(id){return function(){openDetail(id);};})(s.id);
-    var imgH=IMG[s.id]?'<img src="'+IMG[s.id]+'" alt="" style="width:100%;height:100%;object-fit:cover;display:block">':'<div class="emod">'+s.em+'</div>';
-    var nH=s.nights>0?'<span class="nbadge">'+s.nights+' NIGHT'+(s.nights>1?"S":"")+"</span>":"";
-    d.innerHTML='<div class="simgw" style="background:'+s.bg+'">'+imgH+nH+'</div><div class="sbody"><div class="sdates">'+s.dates+'</div><div class="sname">'+s.name+'</div><div class="sloc">'+s.sub.split(",").slice(0,2).join(",")+'</div></div>';
+function renderCards(filter) {
+  var c = document.getElementById("stops-scroll"); if (!c) return;
+  c.innerHTML = "";
+  STOPS.forEach(function(s) {
+    if (filter !== "all" && s.type !== filter) return;
+    var sd = getStopData(s.id);
+    var d = document.createElement("div");
+    d.className = "scrd";
+    d.onclick = (function(id) { return function() { openDetail(id); }; })(s.id);
+    var imgH = IMG[s.id]
+      ? '<img src="' + IMG[s.id] + '" alt="" style="width:100%;height:100%;object-fit:cover;display:block">'
+      : '<div class="emod">' + s.em + '</div>';
+    var nH = sd.nights > 0 ? '<span class="nbadge">' + sd.nights + ' NIGHT' + (sd.nights > 1 ? 'S' : '') + '</span>' : '';
+    d.innerHTML = '<div class="simgw" style="background:' + s.bg + '">' + imgH + nH + '</div>'
+      + '<div class="sbody"><div class="sdates">' + s.dates + '</div><div class="sname">' + sd.name + '</div>'
+      + '<div class="sloc">' + s.sub.split(",").slice(0,2).join(",") + '</div></div>';
     c.appendChild(d);
   });
 }
 
-function filterStops(btn,f){
-  document.querySelectorAll(".tbtn").forEach(function(b){b.classList.remove("active");});
+function filterStops(btn, f) {
+  document.querySelectorAll(".tbtn").forEach(function(b) { b.classList.remove("active"); });
   btn.classList.add("active");
   renderCards(f);
 }
 
-function openDetail(id){
-  CUR=id;
-  var s=STOPS[id];
-  var inner=document.getElementById("d-inner");
-  if(IMG[id]){
-    inner.innerHTML='<img src="'+IMG[id]+'" style="width:100%;height:100%;object-fit:cover;display:block">';
-    inner.style.background=s.bg;inner.style.fontSize="0";
+// ── STOP DETAIL ──
+function openDetail(id) {
+  CURTAB = "detail"; EDIT_STOP = id;
+  var s = STOPS[id];
+  var sd = getStopData(id);
+  var inner = document.getElementById("d-inner");
+  if (IMG[id]) {
+    inner.innerHTML = '<img src="' + IMG[id] + '" style="width:100%;height:100%;object-fit:cover;display:block">';
+    inner.style.fontSize = "0";
   } else {
-    inner.innerHTML=s.em;inner.style.background=s.bg;inner.style.fontSize="72px";
+    inner.textContent = s.em; inner.style.fontSize = "72px";
   }
-  document.getElementById("d-name").textContent=s.name;
-  document.getElementById("d-sub").innerHTML=s.sub;
-  document.getElementById("d-date").textContent=s.dates;
-  document.getElementById("d-nights").textContent=s.nights>0?(s.nights+" Night"+(s.nights>1?"s":"")):"Home!";
-  document.getElementById("d-wtemp").innerHTML=s.tmp;
-  document.getElementById("d-wdesc").innerHTML=s.wx;
-  // eats rendered by renderEatList(id) below
-  EDIT_STOP=id;
+  inner.style.background = s.bg;
+  document.getElementById("d-name").textContent = sd.name;
+  document.getElementById("d-sub").innerHTML = s.sub;
+  document.getElementById("d-date").textContent = s.dates;
+  document.getElementById("d-nights").textContent = sd.nights > 0 ? (sd.nights + " Night" + (sd.nights > 1 ? "s" : "")) : "Home!";
+  document.getElementById("d-wtemp").innerHTML = s.tmp;
+  document.getElementById("d-wdesc").innerHTML = s.wx;
   renderHotelList(id);
   renderEatList(id);
-  document.querySelectorAll(".nitem").forEach(function(n){n.classList.remove("active");});
-  var ne=document.getElementById("n-home");if(ne)ne.classList.add("active");
-  CURTAB="detail";
-  document.querySelectorAll(".screen").forEach(function(sc){sc.classList.remove("active");});
+  document.querySelectorAll(".nitem").forEach(function(n) { n.classList.remove("active"); });
+  document.getElementById("n-home").classList.add("active");
+  document.querySelectorAll(".screen").forEach(function(sc) { sc.classList.remove("active"); });
   document.getElementById("s-detail").classList.add("active");
-  document.getElementById("s-detail").scrollTop=0;
+  document.getElementById("s-detail").scrollTop = 0;
 }
 
-function goBack(){switchTab("home");}
+function goBack() { switchTab("home"); }
 
-function handleHeroUpload(e){
-  var f=e.target.files[0];if(!f)return;
-  var url=URL.createObjectURL(f);
-  IMG[CUR]=url;
-  var inner=document.getElementById("d-inner");
-  inner.innerHTML='<img src="'+url+'" style="width:100%;height:100%;object-fit:cover;display:block">';
-  inner.style.fontSize="0";
+function handleHeroUpload(e) {
+  var f = e.target.files[0]; if (!f) return;
+  var url = URL.createObjectURL(f);
+  IMG[EDIT_STOP] = url;
+  var inner = document.getElementById("d-inner");
+  inner.innerHTML = '<img src="' + url + '" style="width:100%;height:100%;object-fit:cover;display:block">';
+  inner.style.fontSize = "0";
   renderCards("all");
 }
 
-function renderRouteList(){
-  var container=document.getElementById("route-list");
-  container.innerHTML="";
-  STOPS.forEach(function(s,i){
-    var last=i===STOPS.length-1;
-    var sd=getStopData(i);
-    var displayName=sd.name;
-    var displayAddr=sd.addr;
-    var displayNights=sd.nights;
-    var stateSub=s.sub.replace(", USA","").split(",")[0].trim();
+// ── HOTEL LIST ──
+function renderHotelList(sid) {
+  var c = document.getElementById("d-hotels-list"); if (!c) return;
+  c.innerHTML = "";
+  getHotels(sid).forEach(function(h, i) {
+    var row = document.createElement("div"); row.className = "item-card-row";
+    var nights = h.nights + " night" + (h.nights > 1 ? "s" : "");
+    var ico = document.createElement("div"); ico.className = "item-card-ico"; ico.textContent = "🏨";
+    var info = document.createElement("div"); info.className = "item-card-info";
+    info.innerHTML = '<div class="item-card-name">' + h.name + '</div><div class="item-card-sub">' + h.checkin + ' · ' + nights + '</div>';
+    var edit = document.createElement("button"); edit.className = "item-card-edit"; edit.innerHTML = "&#9998;";
+    edit.onclick = (function(ix) { return function() { editHotel(ix); }; })(i);
+    var go = document.createElement("button"); go.className = "item-card-edit"; go.style.color = "var(--gd)"; go.innerHTML = "&#62;";
+    go.onclick = (function(si, ix) { return function() { openHotelDetailDirect(si, ix); }; })(sid, i);
+    row.appendChild(ico); row.appendChild(info); row.appendChild(edit); row.appendChild(go);
+    c.appendChild(row);
+  });
+}
 
-    // wrapper
-    var wrap=document.createElement("div");
-    wrap.style.cssText="display:flex;flex-direction:column";
+// ── EAT LIST ──
+function renderEatList(sid) {
+  var c = document.getElementById("d-eats"); if (!c) return;
+  c.innerHTML = "";
+  getEats(sid).forEach(function(e, i) {
+    var wrap = document.createElement("div");
+    wrap.style.cssText = "min-width:150px;background:var(--wh);border-radius:18px;overflow:hidden;box-shadow:var(--sh);flex-shrink:0;cursor:pointer";
+    wrap.onclick = (function(si, ei) { return function() { openRestDetailDirect(si, ei); }; })(sid, i);
+    var imgArea = document.createElement("div");
+    imgArea.style.cssText = "height:100px;background:var(--gd);display:flex;align-items:center;justify-content:center;font-size:36px;position:relative";
+    imgArea.textContent = e.e;
+    var editBtn = document.createElement("button");
+    editBtn.style.cssText = "position:absolute;top:6px;right:6px;width:26px;height:26px;background:rgba(255,255,255,.9);border:none;border-radius:50%;cursor:pointer;font-size:12px";
+    editBtn.innerHTML = "&#9998;";
+    editBtn.onclick = (function(ix) { return function(ev) { ev.stopPropagation(); editEat(ix); }; })(i);
+    imgArea.appendChild(editBtn);
+    var txt = document.createElement("div"); txt.style.cssText = "padding:10px 12px";
+    txt.innerHTML = '<div style="font-size:13px;font-weight:700">' + e.n + '</div><div style="font-size:11px;color:var(--tl);margin-top:2px">' + e.c + '</div>';
+    var ftr = document.createElement("div"); ftr.style.cssText = "padding:4px 12px 10px;display:flex;align-items:center;justify-content:space-between";
+    ftr.innerHTML = '<span style="font-size:11px;color:var(--tm)">&#128663; ' + e.d + '</span><div style="width:24px;height:24px;border-radius:50%;background:var(--gd);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center">C</div>';
+    wrap.appendChild(imgArea); wrap.appendChild(txt); wrap.appendChild(ftr);
+    c.appendChild(wrap);
+  });
+}
 
-    // row
-    var row=document.createElement("div");
-    row.className="rsitem";
+// ── HOTEL DETAIL PAGE ──
+function openHotelDetailDirect(sid, idx) {
+  var hotels = getHotels(sid); if (!hotels || !hotels.length) return;
+  var h = hotels[Math.min(idx, hotels.length-1)];
+  var s = STOPS[sid];
+  document.getElementById("hdd-sid").value = sid;
+  document.getElementById("hdd-hidx").value = idx;
+  document.getElementById("hdd-hero-inner").style.background = s.bg;
+  document.getElementById("hdd-name").textContent = h.name;
+  document.getElementById("hdd-loc").textContent = h.addr;
+  document.getElementById("hdd-dates").value = h.checkin || s.dates;
+  document.getElementById("hdd-nights").textContent = h.nights + " Night" + (h.nights > 1 ? "s" : "");
+  document.getElementById("hdd-room").value = h.room || "Standard Room";
+  document.getElementById("hdd-conf").value = h.conf || "";
+  document.getElementById("hdd-checkin").value = h.checkin_time || "After 3:00 PM";
+  document.getElementById("hdd-checkout").value = h.checkout_time || "By 11:00 AM";
+  document.getElementById("hdd-status").textContent = (h.status || "Upcoming").toUpperCase();
+  initMiniMap("hdd-map", s.lat, s.lng, h.name);
+  document.querySelectorAll(".screen").forEach(function(sc) { sc.classList.remove("active"); });
+  document.getElementById("s-hotel-detail").classList.add("active");
+  CURTAB = "hotel-detail";
+}
 
-    // timeline
-    var timeline=document.createElement("div");
-    timeline.className="rsline";
-    var num=document.createElement("div");
-    num.className="rsnum";
-    num.textContent=i+1;
-    timeline.appendChild(num);
-    if(!last){var conn=document.createElement("div");conn.className="rsconn";timeline.appendChild(conn);}
-    row.appendChild(timeline);
+function saveHotelDetail() {
+  var sid = parseInt(document.getElementById("hdd-sid").value);
+  var hidx = parseInt(document.getElementById("hdd-hidx").value);
+  var h = getHotels(sid)[hidx]; if (!h) return;
+  h.checkin = document.getElementById("hdd-dates").value || h.checkin;
+  h.room = document.getElementById("hdd-room").value || h.room;
+  h.conf = document.getElementById("hdd-conf").value || h.conf;
+  h.checkin_time = document.getElementById("hdd-checkin").value;
+  h.checkout_time = document.getElementById("hdd-checkout").value;
+  document.getElementById("hdd-nights").textContent = h.nights + " Night" + (h.nights > 1 ? "s" : "");
+  syncPush("stopHotels", stopHotels);
+  renderHotelList(sid);
+}
 
-    // card
-    var card=document.createElement("div");
-    card.className="rscrd";
+// ── RESTAURANT DETAIL PAGE ──
+function openRestDetailDirect(sid, idx) {
+  var eats = getEats(sid); if (!eats || !eats.length) return;
+  var e = eats[Math.min(idx, eats.length-1)];
+  var s = STOPS[sid];
+  document.getElementById("rdd-hero-inner").style.background = s.bg;
+  document.getElementById("rdd-name").textContent = e.n;
+  document.getElementById("rdd-type").innerHTML = e.c;
+  document.getElementById("rdd-rating").textContent = "4.8";
+  document.getElementById("rdd-dist").textContent = e.d;
+  document.getElementById("rdd-price").textContent = e.price || "$$$";
+  document.getElementById("rdd-desc").textContent = e.desc || "A great dining spot.";
+  document.getElementById("rdd-address").textContent = s.addr;
+  document.getElementById("rdd-address-sub").textContent = "Near " + s.name;
+  initMiniMap("rdd-map", s.lat + 0.002, s.lng + 0.002, e.n);
+  document.querySelectorAll(".screen").forEach(function(sc) { sc.classList.remove("active"); });
+  document.getElementById("s-rest-detail").classList.add("active");
+  CURTAB = "rest-detail";
+}
 
-    // header row
-    var hdr=document.createElement("div");
-    hdr.className="rshdr";
-    var nameCol=document.createElement("div");
-    var nameDiv=document.createElement("div");
-    nameDiv.className="rsname";
-    nameDiv.textContent=displayName;
-    var subDiv=document.createElement("div");
-    subDiv.className="rssub";
-    subDiv.textContent=stateSub;
-    nameCol.appendChild(nameDiv);
-    nameCol.appendChild(subDiv);
-
-    // pill + edit pencil
-    var rightCol=document.createElement("div");
-    rightCol.style.cssText="display:flex;flex-direction:column;align-items:flex-end;gap:6px";
-
-    var pill=document.createElement("div");
-    if(last){
-      pill.className="epill";
-      pill.innerHTML="&#127937; Home";
-    } else if(displayNights>0){
-      pill.className="npill";
-      pill.textContent=displayNights+" Night"+(displayNights>1?"s":"");
-    } else {
-      pill.className="tbadgetime";
-      pill.textContent=s.dates;
-    }
-
-    // edit pencil button
-    var editBtn=document.createElement("button");
-    editBtn.style.cssText="background:none;border:none;cursor:pointer;font-size:14px;color:var(--tl);padding:0";
-    editBtn.innerHTML="&#9998;";
-    editBtn.onclick=(function(idx){return function(){openEditStop(idx);};})(i);
-
+// ── ROUTE LIST ──
+function renderRouteList() {
+  var container = document.getElementById("route-list"); if (!container) return;
+  container.innerHTML = "";
+  STOPS.forEach(function(s, i) {
+    var last = i === STOPS.length - 1;
+    var sd = getStopData(i);
+    var wrap = document.createElement("div"); wrap.style.cssText = "display:flex;flex-direction:column";
+    var row = document.createElement("div"); row.className = "rsitem";
+    var tl = document.createElement("div"); tl.className = "rsline";
+    var num = document.createElement("div"); num.className = "rsnum"; num.textContent = i+1;
+    tl.appendChild(num);
+    if (!last) { var conn = document.createElement("div"); conn.className = "rsconn"; tl.appendChild(conn); }
+    row.appendChild(tl);
+    var card = document.createElement("div"); card.className = "rscrd";
+    var hdr = document.createElement("div"); hdr.className = "rshdr";
+    var nameCol = document.createElement("div");
+    nameCol.innerHTML = '<div class="rsname">' + sd.name + '</div><div class="rssub">' + s.sub.replace(", USA","").split(",")[0].trim() + '</div>';
+    var rightCol = document.createElement("div"); rightCol.style.cssText = "display:flex;flex-direction:column;align-items:flex-end;gap:6px";
+    var pill = document.createElement("div");
+    if (last) { pill.className = "epill"; pill.innerHTML = "&#127937; Home"; }
+    else if (sd.nights > 0) { pill.className = "npill"; pill.textContent = sd.nights + " Night" + (sd.nights > 1 ? "s" : ""); }
+    else { pill.className = "tbadgetime"; pill.textContent = s.dates; }
     rightCol.appendChild(pill);
-    if(!last)rightCol.appendChild(editBtn);
-    hdr.appendChild(nameCol);
-    hdr.appendChild(rightCol);
-    card.appendChild(hdr);
-
-    // actions
-    var acts=document.createElement("div");
-    acts.className="rsacts";
-
-    // Navigate button -> Google Maps with editable address
-    var navBtn=document.createElement("button");
-    navBtn.className="btn-nav";
-    navBtn.innerHTML="&#9650; Navigate";
-    navBtn.onclick=(function(addr){return function(){window.open("https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(addr),"_blank");};})(displayAddr);
+    if (!last) {
+      var editBtn = document.createElement("button");
+      editBtn.style.cssText = "background:none;border:none;cursor:pointer;font-size:14px;color:var(--tl);padding:0";
+      editBtn.innerHTML = "&#9998;";
+      editBtn.onclick = (function(ix) { return function() { openEditStop(ix); }; })(i);
+      rightCol.appendChild(editBtn);
+    }
+    hdr.appendChild(nameCol); hdr.appendChild(rightCol); card.appendChild(hdr);
+    var acts = document.createElement("div"); acts.className = "rsacts";
+    var navBtn = document.createElement("button"); navBtn.className = "btn-nav"; navBtn.innerHTML = "&#9650; Navigate";
+    navBtn.onclick = (function(addr) { return function() { window.open("https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(addr), "_blank"); }; })(sd.addr);
     acts.appendChild(navBtn);
-
-    if(!last && i>0){
-
+    if (!last) {
+      var eatBtn = document.createElement("div"); eatBtn.className = "icrcl"; eatBtn.title = "Restaurants"; eatBtn.innerHTML = "&#127869;";
+      eatBtn.onclick = (function(ix) { return function() { openRestDetailDirect(ix, 0); }; })(i);
+      var hotelBtn = document.createElement("div"); hotelBtn.className = "icrcl"; hotelBtn.title = "Hotel"; hotelBtn.innerHTML = "&#128716;";
+      hotelBtn.onclick = (function(ix) { return function() { openHotelDetailDirect(ix, 0); }; })(i);
+      acts.appendChild(eatBtn); acts.appendChild(hotelBtn);
     }
-
-    if(!last){
-      var eatBtn=document.createElement("div");
-      eatBtn.className="icrcl";
-      eatBtn.title="Restaurants";
-      eatBtn.innerHTML="&#127869;";
-      eatBtn.onclick=(function(idx){return function(){openRestDetailDirect(idx,0);};})(i);
-      var hotelBtn=document.createElement("div");
-      hotelBtn.className="icrcl";
-      hotelBtn.title="Hotel";
-      hotelBtn.innerHTML="&#128716;";
-      hotelBtn.onclick=(function(idx){return function(){openHotelDetailDirect(idx,0);};})(i);
-      acts.appendChild(eatBtn);
-      acts.appendChild(hotelBtn);
-    }
-
-    card.appendChild(acts);
-    row.appendChild(card);
-    wrap.appendChild(row);
-
-    if(s.drive&&!last){
-      var driveLabel=document.createElement("div");
-      driveLabel.className="dlbl";
-      driveLabel.textContent=s.drive;
-      wrap.appendChild(driveLabel);
-    }
-
+    card.appendChild(acts); row.appendChild(card); wrap.appendChild(row);
+    if (s.drive && !last) { var dl = document.createElement("div"); dl.className = "dlbl"; dl.textContent = s.drive; wrap.appendChild(dl); }
     container.appendChild(wrap);
   });
 }
 
-var MAP=null,MINIT=false,FULLMAP=null,FMINIT=false;
+// ── MAP ──
+var MAP = null, MINIT = false, FULLMAP = null, FMINIT = false;
+var _miniMaps = {};
 
-function openFullMap(){
-  var el=document.getElementById("map-fullscreen");
-  el.style.display="flex";el.style.flexDirection="column";
-  if(!FMINIT){
-    FMINIT=true;
-    FULLMAP=L.map("map-full",{zoomControl:true,attributionControl:true,scrollWheelZoom:true,dragging:true,touchZoom:true});
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,attribution:'&#169; <a href="https://www.openstreetmap.org/copyright">OSM contributors</a>'}).addTo(FULLMAP);
-    buildRouteOnMap(FULLMAP,true);
-  }
-  setTimeout(function(){FULLMAP.invalidateSize();},100);
-}
-
-function closeFullMap(){
-  document.getElementById("map-fullscreen").style.display="none";
-}
-
-function buildRouteOnMap(mapInst,isLarge){
-  var lls=STOPS.map(function(s){return[s.lat,s.lng];});
-  L.polyline(lls,{color:"#2D4A3E",weight:isLarge?4:3,opacity:.88,dashArray:"8,6"}).addTo(mapInst);
-  STOPS.forEach(function(s,i){
-    var isFirst=i===0,isLast=i===STOPS.length-1;
-    var dotColor=isFirst?"#2D4A3E":isLast?"#E8856A":s.type==="park"?"#C4532A":"#3D6B5A";
-    L.circleMarker([s.lat,s.lng],{radius:isLarge?8:6,fillColor:dotColor,fillOpacity:1,color:"#fff",weight:2}).addTo(mapInst)
-      .on("click",(function(id){return function(){if(!isLarge)openDetail(id);else{closeFullMap();openDetail(id);}};})(i));
-    var cityName=s.name.split(",")[0];
-    var state=s.sub.replace(", USA","").split(",")[0].trim();
-    var lh='<div style="font-family:DM Sans,sans-serif;line-height:1.3;white-space:nowrap;text-shadow:1px 1px 0 #fff,-1px -1px 0 #fff,1px -1px 0 #fff,-1px 1px 0 #fff,0 2px 4px rgba(255,255,255,.8)"><span style="font-size:11px;font-weight:700;color:#1A2820">'+cityName+'</span><br><span style="font-size:9px;font-weight:400;color:#4A5E55">'+state+'</span></div>';
+function buildRouteOnMap(mapInst, isLarge) {
+  var lls = STOPS.map(function(s) { return [s.lat, s.lng]; });
+  L.polyline(lls, {color:"#2D4A3E", weight:isLarge?4:3, opacity:.88, dashArray:"8,6"}).addTo(mapInst);
+  STOPS.forEach(function(s, i) {
+    var col = i===0?"#2D4A3E":i===STOPS.length-1?"#E8856A":s.type==="park"?"#C4532A":"#3D6B5A";
+    L.circleMarker([s.lat,s.lng],{radius:isLarge?8:6,fillColor:col,fillOpacity:1,color:"#fff",weight:2}).addTo(mapInst)
+      .on("click",(function(id){return function(){if(isLarge){closeFullMap();} openDetail(id);};})(i));
+    var city = s.name.split(",")[0];
+    var state = s.sub.replace(", USA","").split(",")[0].trim();
+    var lh = '<div style="font-family:DM Sans,sans-serif;line-height:1.3;white-space:nowrap;text-shadow:1px 1px 0 #fff,-1px -1px 0 #fff,1px -1px 0 #fff,-1px 1px 0 #fff"><span style="font-size:11px;font-weight:700;color:#1A2820">' + city + '</span><br><span style="font-size:9px;color:#4A5E55">' + state + '</span></div>';
     L.marker([s.lat,s.lng],{icon:L.divIcon({className:"",html:lh,iconSize:[110,32],iconAnchor:[-10,16]}),interactive:false}).addTo(mapInst);
-    if(i<STOPS.length-1&&s.drive){
-      var hrs=s.drive.match(/([\d.]+)h/);
-      var lbl=hrs?hrs[1]+"h":"?";
-      var mLat=(s.lat+STOPS[i+1].lat)/2,mLng=(s.lng+STOPS[i+1].lng)/2;
-      var ch='<div class="map-drive-chip"><span>&#128663;</span><span>'+lbl+'</span></div>';
+    if (i < STOPS.length-1 && s.drive) {
+      var hrs = s.drive.match(/([\d.]+)h/);
+      var lbl = hrs ? hrs[1]+"h" : "?";
+      var mLat = (s.lat+STOPS[i+1].lat)/2, mLng = (s.lng+STOPS[i+1].lng)/2;
+      var ch = '<div class="map-drive-chip"><span>&#128663;</span><span>' + lbl + '</span></div>';
       L.marker([mLat,mLng],{icon:L.divIcon({className:"",html:ch,iconSize:[60,26],iconAnchor:[30,13]}),interactive:false}).addTo(mapInst);
     }
   });
   mapInst.fitBounds(L.latLngBounds(lls),{padding:[isLarge?50:32,isLarge?50:32]});
 }
 
-var HMAP=null,RMAP=null;
-function initMap(){
-  if(MINIT)return;MINIT=true;
-  MAP=L.map("map",{zoomControl:false,attributionControl:true,scrollWheelZoom:false,dragging:true,touchZoom:true});
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,attribution:'&#169; <a href="https://www.openstreetmap.org/copyright">OSM</a>'}).addTo(MAP);
-  buildRouteOnMap(MAP,false);
+function initMap() {
+  if (MINIT) return; MINIT = true;
+  MAP = L.map("map",{zoomControl:false,attributionControl:true,scrollWheelZoom:false,dragging:true,touchZoom:true});
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18}).addTo(MAP);
+  buildRouteOnMap(MAP, false);
   setTimeout(function(){MAP.invalidateSize();},300);
 }
 
-function initMiniMap(containerId,lat,lng,label){
-  setTimeout(function(){
-    var existing=document.getElementById(containerId)._leaflet_id;
-    if(existing) return;
-    var m=L.map(containerId,{zoomControl:false,attributionControl:false,scrollWheelZoom:false,dragging:false,touchZoom:false});
+function openFullMap() {
+  var el = document.getElementById("map-fullscreen");
+  el.style.display = "flex"; el.style.flexDirection = "column";
+  if (!FMINIT) {
+    FMINIT = true;
+    FULLMAP = L.map("map-full",{zoomControl:true,attributionControl:true,scrollWheelZoom:true,dragging:true,touchZoom:true});
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18}).addTo(FULLMAP);
+    buildRouteOnMap(FULLMAP, true);
+  }
+  setTimeout(function(){FULLMAP.invalidateSize();},100);
+}
+
+function closeFullMap() { document.getElementById("map-fullscreen").style.display="none"; }
+
+function initMiniMap(containerId, lat, lng, label) {
+  if (_miniMaps[containerId]) return;
+  setTimeout(function() {
+    var el = document.getElementById(containerId); if (!el) return;
+    if (el._leaflet_id) return;
+    var m = L.map(containerId,{zoomControl:false,attributionControl:false,scrollWheelZoom:false,dragging:false,touchZoom:false});
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18}).addTo(m);
-    var ico=L.divIcon({className:"",html:'<div style="width:32px;height:32px;background:var(--gd);border-radius:50%;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;font-size:14px">&#128205;</div>',iconSize:[32,32],iconAnchor:[16,16]});
+    var ico = L.divIcon({className:"",html:'<div style="width:32px;height:32px;background:var(--gd);border-radius:50%;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;font-size:14px">&#128205;</div>',iconSize:[32,32],iconAnchor:[16,16]});
     L.marker([lat,lng],{icon:ico}).addTo(m);
     m.setView([lat,lng],12);
+    _miniMaps[containerId] = m;
   },200);
 }
 
-var SMAP={home:"s-home",route:"s-route",spending:"s-spending",wallet:"s-wallet",detail:"s-detail","hotel-detail":"s-hotel-detail","rest-detail":"s-rest-detail"};
-var NMAP={home:"n-home",route:"n-route",spending:"n-spending",wallet:"n-wallet"};
-var CURTAB="home";
-
-function switchTab(tab){
-  CURTAB=tab;
-  document.querySelectorAll(".screen").forEach(function(s){s.classList.remove("active");});
-  document.getElementById(SMAP[tab]||"s-home").classList.add("active");
-  document.querySelectorAll(".nitem").forEach(function(n){n.classList.remove("active");});
-  var navKey=(tab==="detail"||tab==="hotel-detail"||tab==="rest-detail")?"home":tab;
-  var ne=document.getElementById(NMAP[navKey]||"n-home");
-  if(ne)ne.classList.add("active");
-  if(tab==="route")setTimeout(initMap,200);
+// ── EDIT STOP MODAL ──
+function openEditStop(idx) {
+  var sd = getStopData(idx);
+  document.getElementById("ms-stop-idx").value = idx;
+  document.getElementById("ms-name").value = sd.name;
+  document.getElementById("ms-addr").value = sd.addr;
+  document.getElementById("ms-nights").value = sd.nights;
+  document.getElementById("modal-stop").classList.remove("hidden");
 }
 
-function goBack(){
-  switchTab("home");
+function saveStop() {
+  var idx = parseInt(document.getElementById("ms-stop-idx").value);
+  var sd = getStopData(idx);
+  sd.name = document.getElementById("ms-name").value || sd.name;
+  sd.addr = document.getElementById("ms-addr").value || sd.addr;
+  sd.nights = parseInt(document.getElementById("ms-nights").value) || 0;
+  stopData[idx] = sd;
+  syncPush("stopData", stopData);
+  renderRouteList(); renderCards("all");
+  closeModal("modal-stop");
 }
 
-
-function openHotelDetail(stopId){
-  var s=STOPS[stopId];
-  document.getElementById("hdd-hero-inner").style.background=s.bg;
-  document.getElementById("hdd-name").textContent=s.hotel;
-  document.getElementById("hdd-loc").textContent=s.addr;
-  document.getElementById("hdd-dates").textContent=s.dates;
-  document.getElementById("hdd-nights").textContent=s.nights>0?(s.nights+" Night"+(s.nights>1?"s":"")):"Day Visit";
-  document.getElementById("hdd-room").textContent="Standard Room";
-  document.getElementById("hdd-conf").textContent="HTL-"+Math.floor(10000+Math.random()*90000)+"-X";
-  document.getElementById("hdd-status").textContent="CONFIRMED";
-  // mini map
-  initMiniMap("hdd-map",s.lat,s.lng,s.hotel);
-  // nav
-  document.querySelectorAll(".screen").forEach(function(sc){sc.classList.remove("active");});
-  document.getElementById("s-hotel-detail").classList.add("active");
-  document.getElementById("s-hotel-detail").scrollTop=0;
-  CURTAB="hotel-detail";
+// ── HOTEL MODAL ──
+function showAddHotel() {
+  document.getElementById("modal-hotel-title").textContent = "Add Hotel";
+  document.getElementById("mh-edit-idx").value = "-1";
+  ["mh-name","mh-addr","mh-checkin","mh-room","mh-conf"].forEach(function(id){document.getElementById(id).value="";});
+  document.getElementById("mh-nights").value = "1";
+  document.getElementById("mh-status").value = "Upcoming";
+  document.getElementById("mh-del-btn").style.display = "none";
+  document.getElementById("modal-hotel").classList.remove("hidden");
 }
 
-function openRestDetail(stopId,eatIdx){
-  var s=STOPS[stopId];
-  var e=s.eats[eatIdx];
-  if(!e) return;
-  document.getElementById("rdd-hero-inner").style.background=s.bg;
-  document.getElementById("rdd-name").textContent=e.n;
-  document.getElementById("rdd-type").innerHTML=e.c;
-  document.getElementById("rdd-rating").textContent="4."+(7+eatIdx);
-  document.getElementById("rdd-dist").textContent=e.d;
-  document.getElementById("rdd-price").textContent="$$$";
-  document.getElementById("rdd-status").textContent="Open";
-  document.getElementById("rdd-desc").textContent="A beloved local dining spot known for its quality ingredients and welcoming atmosphere. Perfect for a memorable meal on your road trip.";
-  document.getElementById("rdd-address").textContent=s.addr;
-  document.getElementById("rdd-address-sub").textContent="Near "+s.name;
-  document.getElementById("rdd-reservation").innerHTML="&#128197; Reservation available";
-  // mini map
-  initMiniMap("rdd-map",s.lat+0.002,s.lng+0.002,e.n);
-  // nav
-  document.querySelectorAll(".screen").forEach(function(sc){sc.classList.remove("active");});
-  document.getElementById("s-rest-detail").classList.add("active");
-  document.getElementById("s-rest-detail").scrollTop=0;
-  CURTAB="rest-detail";
+function editHotel(idx) {
+  var h = getHotels(EDIT_STOP)[idx];
+  document.getElementById("modal-hotel-title").textContent = "Edit Hotel";
+  document.getElementById("mh-edit-idx").value = idx;
+  document.getElementById("mh-name").value = h.name;
+  document.getElementById("mh-addr").value = h.addr;
+  document.getElementById("mh-checkin").value = h.checkin;
+  document.getElementById("mh-nights").value = h.nights;
+  document.getElementById("mh-room").value = h.room;
+  document.getElementById("mh-conf").value = h.conf;
+  document.getElementById("mh-status").value = h.status;
+  document.getElementById("mh-del-btn").style.display = "block";
+  document.getElementById("modal-hotel").classList.remove("hidden");
 }
 
-function addExpense(){
-  var inp=document.getElementById("exp-amount")||document.querySelector(".ainp");
-  var catEl=document.getElementById("exp-cat");
-  var cat=catEl?catEl.value:"Misc";
-  var descEl=document.getElementById("exp-desc");
-  var payerEl=document.getElementById("exp-payer");
-  var now=new Date();
-  var timeStr=now.getHours()+":"+(now.getMinutes()<10?"0":"")+now.getMinutes();
-  var desc=descEl?descEl.value.trim():"";
-  var payer=payerEl?payerEl.value.trim():"";
-  // Validate all required fields
-  if(!val||val<=0){inp.style.boxShadow="0 0 0 2px var(--ru)";setTimeout(function(){inp.style.boxShadow="";},1500);return;}
-  if(!desc){descEl.style.border="1.5px solid var(--ru)";descEl.focus();setTimeout(function(){descEl.style.border="1.5px solid transparent";},1500);return;}
-  if(!payer){payerEl.style.border="1.5px solid var(--ru)";payerEl.focus();setTimeout(function(){payerEl.style.border="1.5px solid transparent";},1500);return;}
-  var im={"Food & Drink":["&#127869;","food"],"Fuel":["&#9981;&#65039;","fuel"],"Lodging":["&#128716;","lodging"],"Fees & Entry":["&#127903;","fuel"],"Misc":["&#128204;","lodging"]};
-  var p=im[cat]||["&#128204;","lodging"];
-  var el=document.createElement("div");
-  el.className="exitem";
-  el.style.cssText="display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--cd);position:relative";
+function saveHotel() {
+  var idx = parseInt(document.getElementById("mh-edit-idx").value);
+  var h = {name:document.getElementById("mh-name").value||"Hotel",addr:document.getElementById("mh-addr").value||"",checkin:document.getElementById("mh-checkin").value||"",nights:parseInt(document.getElementById("mh-nights").value)||1,room:document.getElementById("mh-room").value||"Standard Room",conf:document.getElementById("mh-conf").value||"",status:document.getElementById("mh-status").value,checkin_time:"After 3:00 PM",checkout_time:"By 11:00 AM"};
+  var list = getHotels(EDIT_STOP);
+  if (idx >= 0) list[idx] = h; else list.push(h);
+  renderHotelList(EDIT_STOP); syncPush("stopHotels", stopHotels); closeModal("modal-hotel");
+}
 
-  var ico=document.createElement("div");
-  ico.className="exico "+p[1];
-  ico.innerHTML=p[0];
+function deleteHotel() {
+  var idx = parseInt(document.getElementById("mh-edit-idx").value);
+  var list = getHotels(EDIT_STOP); if (idx >= 0) list.splice(idx,1);
+  renderHotelList(EDIT_STOP); syncPush("stopHotels", stopHotels); closeModal("modal-hotel");
+}
 
-  var info=document.createElement("div");
-  info.style.flex="1";
-  var _dn = desc || cat;
-  var _time = timeStr;
-  var _line2parts = [];
-  if(payer) _line2parts.push(payer);
-  if(desc) _line2parts.push(cat);  // only show cat in line2 if there's a desc in line1
-  var _line2 = _line2parts.length ? _line2parts.join(' · ') : cat;
-  info.innerHTML='<div style="font-size:14px;font-weight:600;color:var(--td)">'+_dn+' <span style="font-weight:400;color:var(--tl);font-size:12px">· '+_time+'</span></div>'+
-    '<div style="font-size:11px;color:var(--tl);margin-top:3px">'+_line2+'</div>';
+// ── EAT MODAL ──
+function showAddEat() {
+  document.getElementById("modal-eat-title").textContent = "Add Restaurant";
+  document.getElementById("me-edit-idx").value = "-1";
+  ["me-name","me-cat","me-dist","me-emoji","me-desc"].forEach(function(id){document.getElementById(id).value="";});
+  document.getElementById("me-price").value = "$$$";
+  document.getElementById("me-del-btn").style.display = "none";
+  document.getElementById("modal-eat").classList.remove("hidden");
+}
 
-  var amt=document.createElement("div");
-  amt.style.cssText="font-size:15px;font-weight:700;white-space:nowrap";
-  amt.innerHTML="&minus;$"+val.toFixed(2);
+function editEat(idx) {
+  var e = getEats(EDIT_STOP)[idx];
+  document.getElementById("modal-eat-title").textContent = "Edit Restaurant";
+  document.getElementById("me-edit-idx").value = idx;
+  document.getElementById("me-name").value = e.n;
+  document.getElementById("me-cat").value = e.c;
+  document.getElementById("me-dist").value = e.d;
+  document.getElementById("me-price").value = e.price||"$$$";
+  document.getElementById("me-emoji").value = e.e;
+  document.getElementById("me-desc").value = e.desc||"";
+  document.getElementById("me-del-btn").style.display = "block";
+  document.getElementById("modal-eat").classList.remove("hidden");
+}
 
-  var delBtn=document.createElement("button");
-  delBtn.style.cssText="width:26px;height:26px;background:#fff0ee;border:none;border-radius:50%;cursor:pointer;font-size:13px;color:var(--ru);display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0";
-  delBtn.innerHTML="&#10005;";
-  delBtn.onclick=function(){
-    el.style.transition="opacity .2s,max-height .3s";
-    el.style.opacity="0";
-    el.style.maxHeight="0";
-    el.style.padding="0";
-    el.style.overflow="hidden";
-    setTimeout(function(){
-      el.remove();
-      var lst=document.getElementById("expense-list");
-      if(!lst.children.length){
-        var ph=document.createElement("div");
-        ph.style.cssText="text-align:center;padding:24px 0;color:var(--tl);font-size:13px";
-        ph.textContent="No expenses yet — start tracking!";
-        lst.appendChild(ph);
-      }
-    },300);
+function saveEat() {
+  var idx = parseInt(document.getElementById("me-edit-idx").value);
+  var e = {n:document.getElementById("me-name").value||"Restaurant",c:document.getElementById("me-cat").value||"Food",d:document.getElementById("me-dist").value||"10 min",price:document.getElementById("me-price").value||"$$$",e:document.getElementById("me-emoji").value||"&#127869;",desc:document.getElementById("me-desc").value||""};
+  var list = getEats(EDIT_STOP);
+  if (idx >= 0) list[idx] = e; else list.push(e);
+  renderEatList(EDIT_STOP); syncPush("stopEats", stopEats); closeModal("modal-eat");
+}
+
+function deleteEat() {
+  var idx = parseInt(document.getElementById("me-edit-idx").value);
+  var list = getEats(EDIT_STOP); if (idx >= 0) list.splice(idx,1);
+  renderEatList(EDIT_STOP); syncPush("stopEats", stopEats); closeModal("modal-eat");
+}
+
+// ── PAYERS ──
+var _payers = ["Ciel","Iris"];
+var _selectedPayer = "";
+
+function savePayers() { localStorage.setItem("voya_payers", JSON.stringify(_payers)); if(SYNC_ENABLED&&DB)DB.ref("voya/payers").set(_payers); }
+
+function renderPayerTags() {
+  var c = document.getElementById("payer-tags"); if (!c) return;
+  c.innerHTML = "";
+  _payers.forEach(function(p) {
+    var btn = document.createElement("button");
+    btn.className = "payer-tag" + (p === _selectedPayer ? " active" : "");
+    btn.textContent = p;
+    btn.onclick = function() { _selectedPayer = (p === _selectedPayer) ? "" : p; renderPayerTags(); };
+    c.appendChild(btn);
+  });
+  var add = document.createElement("button"); add.className = "payer-tag add-tag"; add.innerHTML = "+ Add";
+  add.onclick = function() {
+    var name = prompt("New payer name:"); if (!name || !name.trim()) return;
+    name = name.trim(); if (_payers.indexOf(name) < 0) { _payers.push(name); savePayers(); renderPayerTags(); renderExpFilterRow(); }
+  };
+  c.appendChild(add);
+}
+
+// ── EXPENSE FILTER ──
+var _expFilter = "All";
+
+function renderExpFilterRow() {
+  var row = document.getElementById("exp-filter-row"); if (!row) return;
+  row.innerHTML = "";
+  var allBtn = document.createElement("button"); allBtn.className = "exp-ftag" + (_expFilter==="All"?" active":""); allBtn.textContent="All";
+  allBtn.onclick = function() { _expFilter="All"; renderExpFilterRow(); renderExpenseList(); };
+  row.appendChild(allBtn);
+  _payers.forEach(function(p) {
+    var btn = document.createElement("button"); btn.className = "exp-ftag" + (_expFilter===p?" active":""); btn.textContent = p;
+    btn.onclick = (function(name) { return function() { _expFilter=name; renderExpFilterRow(); renderExpenseList(); }; })(p);
+    row.appendChild(btn);
+  });
+}
+
+// ── CATEGORIES ──
+var _categories = ["Food & Drink","Fuel","Lodging","Fees & Entry","Misc"];
+var _catColors = ["#2C5F8A","#C4532A","#2D4A3E","#E8856A","#8BAF9F","#7a5a3a","#5a7a8a","#6a7a3a","#a04020","#3d5a7a"];
+
+function saveCategories() { localStorage.setItem("voya_cats", JSON.stringify(_categories)); if(SYNC_ENABLED&&DB)DB.ref("voya/categories").set(_categories); }
+
+function renderCatSelect() {
+  var sel = document.getElementById("exp-cat"); if (!sel) return;
+  var cur = sel.value;
+  sel.innerHTML = "";
+  _categories.forEach(function(cat) { var opt = document.createElement("option"); opt.value = cat; opt.textContent = cat; sel.appendChild(opt); });
+  if (cur && _categories.indexOf(cur) >= 0) sel.value = cur;
+}
+
+function showCatManager() { renderCatList(); document.getElementById("modal-cat").classList.remove("hidden"); }
+
+function renderCatList() {
+  var el = document.getElementById("cat-list"); if (!el) return; el.innerHTML = "";
+  _categories.forEach(function(cat, i) {
+    var row = document.createElement("div"); row.style.cssText = "display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--cd)";
+    row.innerHTML = '<div style="width:10px;height:10px;border-radius:50%;background:'+(_catColors[i%_catColors.length])+';flex-shrink:0"></div><span style="flex:1;font-size:14px;font-weight:500">'+cat+'</span>';
+    var del = document.createElement("button"); del.style.cssText="width:28px;height:28px;background:#fff0ee;border:none;border-radius:50%;cursor:pointer;font-size:13px;color:var(--ru)"; del.innerHTML="&#10005;";
+    del.onclick=(function(ix){return function(){_categories.splice(ix,1);saveCategories();renderCatList();renderCatSelect();};})(i);
+    row.appendChild(del); el.appendChild(row);
+  });
+}
+
+function addCategory() {
+  var inp = document.getElementById("new-cat-input"); var val = inp.value.trim(); if (!val || _categories.indexOf(val)>=0) return;
+  _categories.push(val); saveCategories(); renderCatList(); renderCatSelect(); inp.value = "";
+}
+
+// ── EXPENSE SUBMIT (new, clean) ──
+function submitExpense() {
+  var amountEl = document.getElementById("exp-amount");
+  var descEl   = document.getElementById("exp-desc");
+  var amount   = parseFloat(amountEl.value);
+  var desc     = descEl.value.trim();
+  var payer    = _selectedPayer;
+  var cat      = document.getElementById("exp-cat") ? document.getElementById("exp-cat").value : "Misc";
+
+  // validate
+  if (!amount || amount <= 0) {
+    amountEl.style.color = "var(--ru)";
+    setTimeout(function(){ amountEl.style.color = "var(--td)"; }, 1500);
+    return;
+  }
+  if (!desc) {
+    descEl.style.borderColor = "var(--ru)";
+    descEl.focus();
+    setTimeout(function(){ descEl.style.borderColor = "transparent"; }, 1500);
+    return;
+  }
+  if (!payer) {
+    var pt = document.getElementById("payer-tags");
+    if (pt) { pt.style.outline = "2px solid var(--ru)"; pt.style.borderRadius = "8px"; setTimeout(function(){ pt.style.outline = ""; }, 1500); }
+    return;
+  }
+
+  var now = new Date();
+  var timeStr = now.getHours() + ":" + (now.getMinutes()<10?"0":"") + now.getMinutes();
+
+  var entry = {
+    id:     Date.now(),
+    desc:   desc,
+    payer:  payer,
+    cat:    cat,
+    amount: amount,
+    time:   timeStr
   };
 
-  el.appendChild(ico);
-  el.appendChild(info);
-  el.appendChild(amt);
-  el.appendChild(delBtn);
-
-  var lst=document.getElementById("expense-list"),ph=lst.querySelector("div");
-  if(ph&&ph.textContent.indexOf("No expenses")>=0)ph.remove();
-  lst.insertBefore(el,lst.firstChild);
-  // sync
-  var entryId=Date.now();
-  delBtn.onclick=(function(eid,elem){return function(){
-    elem.style.transition="opacity .2s";elem.style.opacity="0";
-    setTimeout(function(){
-      elem.remove();
-      syncExpenseDel(eid);
-      var l=document.getElementById("expense-list");
-      if(l&&!l.children.length){var ph2=document.createElement("div");ph2.style.cssText="text-align:center;padding:24px 0;color:var(--tl);font-size:13px";ph2.textContent="No expenses yet — start tracking!";l.appendChild(ph2);}
-    },200);
-  };})(entryId,el);
-  if(document.getElementById("exp-desc"))document.getElementById("exp-desc").value="";
-  if(document.getElementById("exp-payer"))document.getElementById("exp-payer").value="";
-  syncExpenseAdd(cat,val,p[1],p[0],now.getHours()+""+(now.getMinutes()<10?"0":"")+now.getMinutes());
+  _expenses.unshift(entry);
   saveLocal();
-  inp.value="";
+  syncPush("expenses", _expenses);
+
+  // clear
+  amountEl.value = "";
+  descEl.value = "";
+
+  renderExpenseList();
   updateDonut();
+  updateHomeSpend();
 }
 
+// ── RENDER EXPENSE LIST ──
+function renderExpenseList() {
+  var lst = document.getElementById("expense-list"); if (!lst) return;
+  lst.innerHTML = "";
+  var filtered = _expFilter === "All" ? _expenses : _expenses.filter(function(e){ return e.payer === _expFilter; });
+  if (!filtered.length) {
+    var ph = document.createElement("div");
+    ph.style.cssText = "text-align:center;padding:24px 0;color:var(--tl);font-size:13px";
+    ph.textContent = _expFilter === "All" ? "No expenses yet — start tracking!" : "No expenses from " + _expFilter + " yet";
+    lst.appendChild(ph);
+  } else {
+    filtered.forEach(function(e) { renderOneExpense(lst, e); });
+  }
+  var totalEl = document.getElementById("exp-total-display");
+  if (totalEl) {
+    var sum = filtered.reduce(function(a,e){ return a+(parseFloat(e.amount||e.val)||0); },0);
+    totalEl.textContent = (_expFilter==="All"?"":"") + "$" + sum.toFixed(2) + (_expFilter!=="All"?" ("+_expFilter+")":"");
+  }
+}
 
-// ── DYNAMIC DONUT CHART ──
-var _donutColors = ["#2C5F8A","#2D4A3E","#C4532A","#E8856A","#8BAF9F","#7a5a3a","#5a7a8a","#6a7a3a","#a04020","#3d5a7a"];
+function renderOneExpense(lst, entry) {
+  var el = document.createElement("div");
+  el.style.cssText = "display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--cd)";
+
+  // icon
+  var clsMap = {"Food & Drink":"food","Fuel":"fuel","Lodging":"lodging","Fees & Entry":"fuel","Misc":"misc"};
+  var icoMap = {"Food & Drink":"&#127869;","Fuel":"&#9981;","Lodging":"&#128716;","Fees & Entry":"&#127903;","Misc":"&#128204;"};
+  var cls = clsMap[entry.cat] || "misc";
+  var ico = document.createElement("div"); ico.className = "exico "+cls; ico.innerHTML = icoMap[entry.cat]||"&#128204;";
+
+  // info — LINE 1: desc · time   LINE 2: payer · cat
+  var info = document.createElement("div"); info.style.cssText = "flex:1;min-width:0";
+  var descText  = entry.desc  || entry.cat;
+  var payerText = entry.payer || "—";
+  var catText   = entry.cat   || "Misc";
+  var timeText  = entry.time  || "";
+  info.innerHTML =
+    '<div style="font-size:14px;font-weight:600;color:var(--td);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'
+    + descText + ' <span style="font-weight:400;color:var(--tl);font-size:12px">· ' + timeText + '</span></div>'
+    + '<div style="font-size:11px;color:var(--tl);margin-top:3px">' + payerText + ' · ' + catText + '</div>';
+
+  // amount
+  var amt = document.createElement("div"); amt.style.cssText = "font-size:15px;font-weight:700;white-space:nowrap";
+  amt.innerHTML = "&minus;$" + parseFloat(entry.amount||entry.val||0).toFixed(2);
+
+  // delete
+  var del = document.createElement("button");
+  del.style.cssText = "width:26px;height:26px;background:#fff0ee;border:none;border-radius:50%;cursor:pointer;font-size:13px;color:var(--ru);display:flex;align-items:center;justify-content:center;flex-shrink:0";
+  del.innerHTML = "&#10005;";
+  del.onclick = (function(eid, elem){ return function() {
+    elem.style.opacity="0"; elem.style.transition="opacity .2s";
+    setTimeout(function(){
+      elem.remove();
+      _expenses = _expenses.filter(function(e){ return e.id !== eid; });
+      saveLocal(); syncPush("expenses", _expenses);
+      renderExpenseList(); updateDonut(); updateHomeSpend();
+    }, 200);
+  };})(entry.id, el);
+
+  el.appendChild(ico); el.appendChild(info); el.appendChild(amt); el.appendChild(del);
+  lst.appendChild(el);
+}
+
+// ── DONUT CHART ──
+var _donutColors = ["#2C5F8A","#C4532A","#2D4A3E","#E8856A","#8BAF9F","#7a5a3a","#5a7a8a","#6a7a3a","#a04020","#3d5a7a"];
 
 function updateDonut() {
   var totals = {}, grand = 0;
-  _expenses.forEach(function(e) {
-    var v = parseFloat(e.val)||0;
-    totals[e.cat] = (totals[e.cat]||0) + v;
-    grand += v;
-  });
-  var totalEl = document.getElementById("donut-total");
-  if (totalEl) totalEl.textContent = "$" + grand.toFixed(2);
-  var svg = document.getElementById("donut-svg");
-  if (!svg) return;
-  svg.querySelectorAll(".donut-arc").forEach(function(a){a.remove();});
-  var cats = Object.keys(totals);
-  var r = 70, circ = 2 * Math.PI * r;
+  _expenses.forEach(function(e) { var v=parseFloat(e.amount||e.val)||0; totals[e.cat]=(totals[e.cat]||0)+v; grand+=v; });
+  var totalEl = document.getElementById("donut-total"); if (totalEl) totalEl.textContent = "$"+grand.toFixed(2);
+  var svg = document.getElementById("donut-svg"); if (!svg) return;
+  svg.querySelectorAll(".darc").forEach(function(a){ a.remove(); });
+  var cats = Object.keys(totals), r=70, circ=2*Math.PI*r;
   if (grand > 0) {
     var offset = 0;
-    cats.forEach(function(cat, i) {
-      var dash = (totals[cat]/grand) * circ;
-      var circle = document.createElementNS("http://www.w3.org/2000/svg","circle");
+    cats.forEach(function(cat,i){
+      var dash=(totals[cat]/grand)*circ;
+      var circle=document.createElementNS("http://www.w3.org/2000/svg","circle");
       circle.setAttribute("cx","100"); circle.setAttribute("cy","100"); circle.setAttribute("r",r);
-      circle.setAttribute("fill","none");
-      circle.setAttribute("stroke", _donutColors[i % _donutColors.length]);
-      circle.setAttribute("stroke-width","28");
-      circle.setAttribute("stroke-dasharray", dash + " " + (circ - dash));
-      circle.setAttribute("stroke-dashoffset", circ/4 - offset);
-      circle.classList.add("donut-arc");
-      svg.appendChild(circle);
-      offset += dash;
+      circle.setAttribute("fill","none"); circle.setAttribute("stroke",_donutColors[i%_donutColors.length]); circle.setAttribute("stroke-width","28");
+      circle.setAttribute("stroke-dasharray",dash+" "+(circ-dash)); circle.setAttribute("stroke-dashoffset",circ/4-offset);
+      circle.classList.add("darc"); svg.appendChild(circle); offset+=dash;
     });
   }
-  var legend = document.getElementById("donut-legend");
-  if (!legend) return;
-  legend.innerHTML = "";
-  if (!cats.length) {
-    _categories.slice(0,4).forEach(function(cat, i) {
-      var item = document.createElement("div");
-      item.style.cssText = "display:flex;align-items:center;gap:8px";
-      item.innerHTML = '<div style="width:10px;height:10px;border-radius:50%;background:'+(_donutColors[i]||"#ccc")+';flex-shrink:0"></div>'+
-        '<div><div style="font-size:11px;color:var(--tl)">'+cat+'</div><div style="font-size:15px;font-weight:700">$0.00</div></div>';
+  var legend=document.getElementById("donut-legend"); if(!legend)return; legend.innerHTML="";
+  if(!cats.length){
+    _categories.slice(0,4).forEach(function(cat,i){
+      var item=document.createElement("div"); item.style.cssText="display:flex;align-items:center;gap:8px";
+      item.innerHTML='<div style="width:10px;height:10px;border-radius:50%;background:'+(_donutColors[i]||"#ccc")+';flex-shrink:0"></div><div><div style="font-size:11px;color:var(--tl)">'+cat+'</div><div style="font-size:15px;font-weight:700">$0.00</div></div>';
       legend.appendChild(item);
     });
     return;
   }
-  cats.forEach(function(cat, i) {
-    var item = document.createElement("div");
-    item.style.cssText = "display:flex;align-items:center;gap:8px";
-    item.innerHTML = '<div style="width:10px;height:10px;border-radius:50%;background:'+(_donutColors[i % _donutColors.length])+';flex-shrink:0"></div>'+
-      '<div><div style="font-size:11px;color:var(--tl)">'+cat+'</div><div style="font-size:15px;font-weight:700">$'+(totals[cat]).toFixed(2)+'</div></div>';
+  cats.forEach(function(cat,i){
+    var item=document.createElement("div"); item.style.cssText="display:flex;align-items:center;gap:8px";
+    item.innerHTML='<div style="width:10px;height:10px;border-radius:50%;background:'+(_donutColors[i%_donutColors.length])+';flex-shrink:0"></div><div><div style="font-size:11px;color:var(--tl)">'+cat+'</div><div style="font-size:15px;font-weight:700">$'+totals[cat].toFixed(2)+'</div></div>';
     legend.appendChild(item);
   });
 }
 
+function updateHomeSpend() {
+  var cats={"Food & Drink":"food","Fuel":"gas","Lodging":"lodging","Fees & Entry":"fees"};
+  var totals={};
+  _expenses.forEach(function(e){ var v=parseFloat(e.amount||e.val)||0; totals[e.cat]=(totals[e.cat]||0)+v; });
+  var map={"gas":["Food & Drink"],"food":["Food & Drink"],"lodging":["Lodging"],"fees":["Fees & Entry"]};
+  // simpler: show top cats
+  var gasEl=document.getElementById("home-gas"); if(gasEl){var v=(totals["Fuel"]||0); gasEl.textContent="$"+v.toFixed(0);}
+  var foodEl=document.getElementById("home-food"); if(foodEl){var v=(totals["Food & Drink"]||0); foodEl.textContent="$"+v.toFixed(0);}
+  var lodEl=document.getElementById("home-lodging"); if(lodEl){var v=(totals["Lodging"]||0); lodEl.textContent="$"+v.toFixed(0);}
+  var feesEl=document.getElementById("home-fees"); if(feesEl){var v=(totals["Fees & Entry"]||0); feesEl.textContent="$"+v.toFixed(0);}
+}
+
+// ── ADDRESS SEARCH (Nominatim) ──
+var _searchTimers = {};
+function addrSearch(inputId, resultsId) {
+  var val = document.getElementById(inputId).value.trim();
+  clearTimeout(_searchTimers[inputId]);
+  var res = document.getElementById(resultsId);
+  if (val.length < 3) { res.classList.add("hidden"); return; }
+  _searchTimers[inputId] = setTimeout(function(){
+    fetch("https://nominatim.openstreetmap.org/search?format=json&limit=5&addressdetails=1&q="+encodeURIComponent(val),{headers:{"Accept-Language":"en"}})
+      .then(function(r){return r.json();})
+      .then(function(data){
+        res.innerHTML="";
+        if(!data.length){res.classList.add("hidden");return;}
+        data.forEach(function(item){
+          var d=document.createElement("div"); d.className="addr-result-item";
+          var parts=item.display_name.split(","); var main=parts.slice(0,2).join(",").trim(); var sub=parts.slice(2,4).join(",").trim();
+          d.innerHTML='<div class="addr-result-main">'+main+'</div><div class="addr-result-sub">'+sub+'</div>';
+          d.onclick=(function(full){return function(){document.getElementById(inputId).value=full;res.classList.add("hidden");};})(item.display_name);
+          res.appendChild(d);
+        });
+        res.classList.remove("hidden");
+      }).catch(function(){res.classList.add("hidden");});
+  },400);
+}
+
+function nameSearch(inputId, resultsId, addrTargetId) {
+  var val = document.getElementById(inputId).value.trim();
+  clearTimeout(_searchTimers[inputId]);
+  var res = document.getElementById(resultsId);
+  if (val.length < 2) { res.classList.add("hidden"); return; }
+  _searchTimers[inputId] = setTimeout(function(){
+    fetch("https://nominatim.openstreetmap.org/search?format=json&limit=6&q="+encodeURIComponent(val),{headers:{"Accept-Language":"en"}})
+      .then(function(r){return r.json();})
+      .then(function(data){
+        res.innerHTML="";
+        if(!data.length){res.classList.add("hidden");return;}
+        data.forEach(function(item){
+          var d=document.createElement("div"); d.className="addr-result-item";
+          var parts=item.display_name.split(","); var main=parts[0].trim(); var sub=parts.slice(1,3).join(",").trim();
+          d.innerHTML='<div class="addr-result-main">'+main+'</div><div class="addr-result-sub">'+sub+'</div>';
+          d.onclick=(function(nm,full){return function(){
+            document.getElementById(inputId).value=nm;
+            if(addrTargetId){var t=document.getElementById(addrTargetId);if(t)t.value=full;}
+            res.classList.add("hidden");
+          };})(main,item.display_name);
+          res.appendChild(d);
+        });
+        res.classList.remove("hidden");
+      }).catch(function(){res.classList.add("hidden");});
+  },400);
+}
+
+document.addEventListener("click",function(e){
+  document.querySelectorAll(".addr-results").forEach(function(r){if(!r.parentElement.contains(e.target))r.classList.add("hidden");});
+});
+
+// ── NAVIGATION ──
+var SMAP = {home:"s-home",route:"s-route",spending:"s-spending",wallet:"s-wallet",detail:"s-detail","hotel-detail":"s-hotel-detail","rest-detail":"s-rest-detail"};
+var NMAP = {home:"n-home",route:"n-route",spending:"n-spending",wallet:"n-wallet"};
+
+function switchTab(tab) {
+  CURTAB = tab;
+  document.querySelectorAll(".screen").forEach(function(s){s.classList.remove("active");});
+  document.getElementById(SMAP[tab]||"s-home").classList.add("active");
+  document.querySelectorAll(".nitem").forEach(function(n){n.classList.remove("active");});
+  var navKey = (tab==="detail"||tab==="hotel-detail"||tab==="rest-detail") ? "home" : tab;
+  var ne = document.getElementById(NMAP[navKey]||"n-home"); if(ne)ne.classList.add("active");
+  if (tab==="route") setTimeout(initMap,200);
+  if (tab==="spending") { renderExpenseList(); updateDonut(); renderExpFilterRow(); renderPayerTags(); renderCatSelect(); }
+}
+
+function closeModal(id) { document.getElementById(id).classList.add("hidden"); }
+function showShareInfo() { var b=document.getElementById("share-banner"); if(b)b.style.display=b.style.display==="none"?"block":"none"; }
+
+// ── INIT ──
 document.addEventListener("DOMContentLoaded", function() {
-  // Load Firebase config
-  try {
-    var saved = localStorage.getItem("voya_fb_config");
-    if (saved) FIREBASE_CONFIG = JSON.parse(saved);
-  } catch(e) {}
-  // Load local data first (instant, no flicker)
   loadLocal();
-  loadCategories();
+  renderCatSelect();
+  renderPayerTags();
+  renderExpFilterRow();
   renderCards("all");
   renderRouteList();
+  renderExpenseList();
   updateDonut();
-  // Then connect Firebase for real-time sync
+  updateHomeSpend();
   initFirebase();
 });
 
